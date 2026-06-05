@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Байланыс - Menu & Calories</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MenuCal">
+    <meta name="theme-color" content="#6366f1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --card-bg: #ffffff;
+            --card-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
+            --header-bg: linear-gradient(135deg, #6366f1, #8b5cf6);
+            --header-text: #ffffff;
+            --footer-bg: #0f172a;
+            --footer-text: #f8fafc;
+            --button-primary: #6366f1;
+            --button-primary-hover: #4f46e5;
+            --button-success: #10b981;
+            --button-success-hover: #059669;
+            --button-info: #3b82f6;
+            --input-bg: #ffffff;
+            --input-border: #e2e8f0;
+            --modal-bg: #ffffff;
+            --error-color: #ef4444;
+            --success-color: #10b981;
+            --transition: all 0.3s ease;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --card-bg: #1e293b;
+            --card-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);
+            --header-bg: linear-gradient(135deg, #4f46e5, #7c3aed);
+            --header-text: #ffffff;
+            --footer-bg: #020617;
+            --footer-text: #f8fafc;
+            --button-primary: #818cf8;
+            --button-primary-hover: #6366f1;
+            --button-success: #34d399;
+            --button-success-hover: #10b981;
+            --button-info: #60a5fa;
+            --input-bg: #334155;
+            --input-border: #475569;
+            --modal-bg: #1e293b;
+            --error-color: #f87171;
+            --success-color: #34d399;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            transition: var(--transition);
+        }
+
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+        /* Офлайн */
+        .offline-alert { display: none; background: var(--error-color); color: white; text-align: center; padding: 8px; position: fixed; top: 0; left: 0; right: 0; z-index: 9999; font-size: 13px; }
+        .offline-alert.show { display: block; }
+
+        /* Хедер */
+        .header {
+            background: var(--header-bg);
+            color: var(--header-text);
+            padding: 14px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header .container { display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; gap: 10px; }
+        .logo i { font-size: 1.8rem; animation: float 3s ease-in-out infinite; }
+        .logo h1 { font-size: 1.5rem; font-weight: 700; background: linear-gradient(to right, #fff, #e0e7ff); background-clip: text; color: transparent; }
+
+        /* Бургер */
+        .burger-icon {
+            width: 44px; height: 44px; background: rgba(255,255,255,0.15); border-radius: 14px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px;
+            cursor: pointer; transition: var(--transition);
+        }
+        .burger-icon:hover { background: rgba(255,255,255,0.25); transform: scale(1.02); }
+        .burger-icon span { width: 22px; height: 2px; background: white; border-radius: 2px; transition: var(--transition); }
+        .burger-icon.active span:nth-child(1) { transform: rotate(45deg) translate(6px,6px); width: 26px; }
+        .burger-icon.active span:nth-child(2) { opacity: 0; }
+        .burger-icon.active span:nth-child(3) { transform: rotate(-45deg) translate(6px,-6px); width: 26px; }
+
+        /* Меню панелі */
+        .menu-panel {
+            position: fixed; top: 0; right: -350px; width: 320px; height: 100vh;
+            background: var(--modal-bg); z-index: 1000; transition: right 0.3s ease;
+            overflow-y: auto; padding: 25px; border-left: 1px solid var(--border-color);
+        }
+        .menu-panel.active { right: 0; }
+        .menu-panel-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
+        .close-menu { width: 36px; height: 36px; background: var(--bg-secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .close-menu:hover { background: var(--error-color); color: white; }
+        .menu-list { list-style: none; }
+        .menu-list li { margin-bottom: 8px; }
+        .menu-list li a { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--text-primary); text-decoration: none; border-radius: 12px; transition: var(--transition); }
+        .menu-list li a:hover { background: rgba(99,102,241,0.1); }
+        .menu-list li a.active { background: var(--button-primary); color: white; }
+        .menu-section { margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color); }
+        .language-buttons { display: flex; gap: 10px; }
+        .lang-menu-btn { flex: 1; padding: 10px; border: 1px solid var(--border-color); background: transparent; border-radius: 10px; cursor: pointer; }
+        .lang-menu-btn.active { background: var(--button-primary); color: white; }
+        .theme-menu-btn { width: 100%; padding: 12px; background: var(--button-primary); color: white; border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; display: none; }
+        .menu-overlay.active { display: block; }
+
+        /* PAGE HEADER */
+        .page-header {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            padding: 50px 0;
+            text-align: center;
+        }
+        .page-header h1 { font-size: 2.2rem; margin-bottom: 10px; animation: slideDown 0.6s ease; }
+        .page-header p { font-size: 1rem; opacity: 0.95; }
+
+        /* CONTACT GRID */
+        .contact-section { padding: 60px 0; }
+        .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 35px; margin-bottom: 50px; }
+
+        /* CONTACT INFO */
+        .contact-info, .contact-form {
+            background: var(--card-bg);
+            padding: 35px;
+            border-radius: 28px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+        }
+        .contact-info h2, .contact-form h2 {
+            font-size: 1.6rem;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .info-items { display: flex; flex-direction: column; gap: 20px; }
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 15px;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            transition: var(--transition);
+        }
+        .info-item:hover { transform: translateX(5px); background: rgba(59,130,246,0.1); }
+        .info-icon {
+            width: 45px; height: 45px;
+            background: linear-gradient(135deg, var(--button-primary), var(--button-primary-hover));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+        .info-content h3 { font-size: 1rem; margin-bottom: 5px; }
+        .info-content p, .info-content a { font-size: 0.85rem; color: var(--text-secondary); text-decoration: none; }
+        .info-content a:hover { color: var(--button-primary); }
+
+        /* FORM */
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 0.85rem; }
+        .form-control {
+            width: 100%; padding: 12px 14px; border: 1.5px solid var(--border-color); border-radius: 14px;
+            font-size: 0.9rem; background: var(--input-bg); color: var(--text-primary); transition: var(--transition);
+        }
+        .form-control:focus { outline: none; border-color: var(--button-primary); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+        textarea.form-control { resize: vertical; min-height: 100px; }
+        .char-counter { text-align: right; font-size: 0.7rem; color: var(--text-muted); margin-top: 5px; }
+        .btn-submit {
+            width: 100%; padding: 14px; background: linear-gradient(135deg, var(--button-success), var(--button-success-hover));
+            color: white; border: none; border-radius: 14px; font-size: 1rem; font-weight: 600;
+            cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(16,185,129,0.3); }
+
+        /* FAQ (НОВЫЙ БЛОК) */
+        .faq-section { margin: 50px 0; }
+        .faq-section h2 { text-align: center; font-size: 1.8rem; margin-bottom: 30px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .faq-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .faq-item {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        .faq-item:hover { transform: translateY(-3px); border-color: var(--button-primary); }
+        .faq-question { display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; color: var(--text-secondary); font-size: 0.85rem; margin-top: 5px; }
+        .faq-item.active .faq-answer { max-height: 100px; margin-top: 12px; }
+
+        /* MAP */
+        .map-container {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 28px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            margin-top: 30px;
+        }
+        .map-container h3 { font-size: 1.3rem; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        .map-container iframe { width: 100%; height: 300px; border-radius: 20px; border: none; }
+
+        /* SOCIAL */
+        .social-section { text-align: center; margin-top: 40px; }
+        .social-section h3 { font-size: 1.3rem; margin-bottom: 20px; }
+        .social-links { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+        .social-link {
+            width: 50px; height: 50px; background: var(--bg-secondary); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; color: var(--button-primary);
+            font-size: 1.5rem; transition: var(--transition); border: 1px solid var(--border-color);
+        }
+        .social-link:hover { background: var(--button-primary); color: white; transform: translateY(-3px) scale(1.05); }
+
+        /* FOOTER */
+        .footer { background: var(--footer-bg); color: var(--footer-text); padding: 30px 0; text-align: center; margin-top: 40px; }
+        .footer-links { display: flex; justify-content: center; gap: 25px; margin-bottom: 15px; flex-wrap: wrap; }
+        .footer-links a { color: var(--footer-text); text-decoration: none; opacity: 0.8; font-size: 0.85rem; }
+        .footer-links a:hover { opacity: 1; color: var(--button-primary); }
+        .footer p { opacity: 0.8; font-size: 0.8rem; }
+
+        /* TOAST */
+        .toast {
+            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%) translateY(120px);
+            background: var(--modal-bg); padding: 10px 20px; border-radius: 50px; box-shadow: var(--card-shadow);
+            z-index: 10000; opacity: 0; transition: all 0.3s; border-left: 3px solid var(--success-color); font-size: 0.85rem;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        @media (max-width: 768px) {
+            .contact-grid { grid-template-columns: 1fr; }
+            .faq-grid { grid-template-columns: 1fr; }
+            .page-header h1 { font-size: 1.8rem; }
+        }
+        @media (max-width: 480px) {
+            .logo h1 { font-size: 1.2rem; }
+            .contact-info, .contact-form { padding: 25px; }
+            .info-item { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-alert" id="offlineAlert"><i class="fas fa-wifi"></i> Интернет жоқ / Нет интернета</div>
+
+    <header class="header">
+        <div class="container">
+            <div class="logo"><i class="fas fa-apple-alt"></i><h1>Menu & Calories</h1></div>
+            <div class="burger-icon" id="burgerIcon" onclick="toggleMenu()"><span></span><span></span><span></span></div>
+        </div>
+    </header>
+
+    <div class="menu-overlay" id="menuOverlay" onclick="closeMenu()"></div>
+    <div class="menu-panel" id="menuPanel">
+        <div class="menu-panel-header"><h3><i class="fas fa-bars"></i> Меню</h3><div class="close-menu" onclick="closeMenu()"><i class="fas fa-times"></i></div></div>
+        <ul class="menu-list">
+            <li><a href="../index.html"><i class="fas fa-home"></i> Басты бет</a></li>
+            <li><a href="about.html"><i class="fas fa-info-circle"></i> Біз туралы</a></li>
+            <li><a href="blog.html"><i class="fas fa-blog"></i> Блог</a></li>
+            <li><a href="contact.html" class="active"><i class="fas fa-address-book"></i> Байланыс</a></li>
+            <li><a href="menu.html"><i class="fas fa-utensils"></i> Мәзір</a></li>
+            <li><a href="calories.html"><i class="fas fa-fire"></i> Калория</a></li>
+            <li><a href="dashboard.html"><i class="fas fa-chart-line"></i> Бақылау</a></li>
+            <li><a href="profile.html"><i class="fas fa-user"></i> Профиль</a></li>
+            <li><a href="login.html"><i class="fas fa-sign-in-alt"></i> Кіру</a></li>
+            <li><a href="register.html"><i class="fas fa-user-plus"></i> Тіркелу</a></li>
+        </ul>
+        <div class="menu-section"><h4><i class="fas fa-globe"></i> Тіл</h4>
+            <div class="language-buttons"><button class="lang-menu-btn" onclick="switchLanguage('kk')">KZ</button><button class="lang-menu-btn" onclick="switchLanguage('ru')">RU</button><button class="lang-menu-btn" onclick="switchLanguage('en')">EN</button></div>
+        </div>
+        <div class="menu-section"><h4><i class="fas fa-palette"></i> Тема</h4>
+            <button class="theme-menu-btn" onclick="toggleTheme()" id="themeMenuBtn"><i class="fas fa-moon"></i> Қараңғы режим</button>
+        </div>
+    </div>
+
+    <section class="page-header">
+        <div class="container">
+            <h1><i class="fas fa-address-book"></i> Байланыс</h1>
+            <p>Бізбен байланысыңыз, біз әрқашан көмектесуге дайынбыз</p>
+        </div>
+    </section>
+
+    <section class="contact-section">
+        <div class="container">
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <h2><i class="fas fa-info-circle"></i> Байланыс ақпараты</h2>
+                    <div class="info-items">
+                        <div class="info-item"><div class="info-icon"><i class="fas fa-map-marker-alt"></i></div><div class="info-content"><h3>📍 Мекен-жайымыз</h3><p>Астана қ., Мәңгілік Ел к-сі 55 БЦ "Ecil", 5 қабат</p></div></div>
+                        <div class="info-item"><div class="info-icon"><i class="fas fa-phone-alt"></i></div><div class="info-content"><h3>📞 Телефон</h3><p><a href="tel:+77771234567">+7 777 123 45 67</a> / <a href="tel:+7712123456">+7 712 123 456</a></p></div></div>
+                        <div class="info-item"><div class="info-icon"><i class="fas fa-envelope"></i></div><div class="info-content"><h3>✉️ Email</h3><p><a href="mailto:info@menucalories.kz">info@menucalories.kz</a> / <a href="mailto:support@menucalories.kz">support@menucalories.kz</a></p></div></div>
+                        <div class="info-item"><div class="info-icon"><i class="fas fa-clock"></i></div><div class="info-content"><h3>⏰ Жұмыс уақыты</h3><p>Дүйсенбі - Жұма: 9:00 - 20:00<br>Сенбі: 10:00 - 18:00<br>Жексенбі: Демалыс</p></div></div>
+                    </div>
+                </div>
+
+                <div class="contact-form">
+                    <h2><i class="fas fa-paper-plane"></i> Хабарлама жіберу</h2>
+                    <form id="contactForm">
+                        <div class="form-group"><label><i class="fas fa-user"></i> Аты-жөні</label><input type="text" id="name" class="form-control" required></div>
+                        <div class="form-group"><label><i class="fas fa-envelope"></i> Email</label><input type="email" id="email" class="form-control" required></div>
+                        <div class="form-group"><label><i class="fas fa-tag"></i> Тақырыбы</label><input type="text" id="subject" class="form-control" required></div>
+                        <div class="form-group"><label><i class="fas fa-comment"></i> Хабарлама</label><textarea id="message" class="form-control" rows="4" required maxlength="500" oninput="updateCharCount()"></textarea><div class="char-counter"><span id="charCount">0</span>/500</div></div>
+                        <button type="submit" class="btn-submit"><i class="fas fa-paper-plane"></i> Жіберу</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- НОВЫЙ БЛОК: ЧАСТО ЗАДАВАЕМЫЕ ВОПРОСЫ -->
+            <div class="faq-section">
+                <h2><i class="fas fa-question-circle"></i> Жиі қойылатын сұрақтар</h2>
+                <div class="faq-grid">
+                    <div class="faq-item" onclick="toggleFaq(this)"><div class="faq-question">❓ Қосымшаны қалай жүктеп алуға болады? <i class="fas fa-chevron-down"></i></div><div class="faq-answer">App Store (iOS) және Google Play (Android) дүкендерінен "Menu & Calories" деп іздеңіз.</div></div>
+                    <div class="faq-item" onclick="toggleFaq(this)"><div class="faq-question">❓ Қосымша тегін бе? <i class="fas fa-chevron-down"></i></div><div class="faq-answer">Иә, негізгі функциялар толығымен тегін. Кейбір премиум мүмкіндіктер ақылы.</div></div>
+                    <div class="faq-item" onclick="toggleFaq(this)"><div class="faq-question">❓ Деректерім қауіпсіз бе? <i class="fas fa-chevron-down"></i></div><div class="faq-answer">Барлық деректер жергілікті түрде сақталады, біз оларды ешкіммен бөліспейміз.</div></div>
+                    <div class="faq-item" onclick="toggleFaq(this)"><div class="faq-question">❓ Қолдау қызметіне қалай хабарласуға болады? <i class="fas fa-chevron-down"></i></div><div class="faq-answer">Осы форманы толтырыңыз немесе support@menucalories.kz поштасына жазыңыз.</div></div>
+                </div>
+            </div>
+
+            <!-- КАРТА -->
+            <div class="map-container">
+                <h3><i class="fas fa-map"></i> Біздің орналасқан жеріміз</h3>
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2504.123456789!2d71.4306!3d51.1282!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNTHCsDA3JzQxLjUiTiA3McKwMjUnNTAuMCJF!5e0!3m2!1sru!2skz!4v1234567890" allowfullscreen loading="lazy"></iframe>
+            </div>
+
+            <!-- СОЦИАЛЬНЫЕ СЕТИ -->
+            <div class="social-section">
+                <h3><i class="fas fa-share-alt"></i> Бізді әлеуметтік желілерде бақылаңыз</h3>
+                <div class="social-links">
+                    <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-telegram-plane"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-whatsapp"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="about.html">Біз туралы</a>
+                <a href="blog.html">Блог</a>
+                <a href="contact.html">Байланыс</a>
+                <a href="menu.html">Мәзір</a>
+                <a href="calories.html">Калория</a>
+                <a href="dashboard.html">Бақылау</a>
+                <a href="profile.html">Профиль</a>
+                <a href="login.html">Кіру</a>
+                <a href="register.html">Тіркелу</a>
+            </div>
+            <p>© 2026 Menu & Calories. Барлық құқықтар қорғалған.</p>
+            <p>📧 info@menucalories.kz | 📞 +7 708 844 6082</p>
+        </div>
+    </footer>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
+        function toggleMenu() { document.getElementById('menuPanel').classList.toggle('active'); document.getElementById('menuOverlay').classList.toggle('active'); document.getElementById('burgerIcon').classList.toggle('active'); document.body.style.overflow = document.body.style.overflow === 'hidden' ? 'auto' : 'hidden'; }
+        function closeMenu() { document.getElementById('menuPanel').classList.remove('active'); document.getElementById('menuOverlay').classList.remove('active'); document.getElementById('burgerIcon').classList.remove('active'); document.body.style.overflow = 'auto'; }
+        function checkInternet() { const alert = document.getElementById('offlineAlert'); if (!navigator.onLine) alert.classList.add('show'); else alert.classList.remove('show'); }
+        function updateCharCount() { const len = document.getElementById('message').value.length; document.getElementById('charCount').textContent = len; }
+        function toggleFaq(el) { el.classList.toggle('active'); }
+
+        function switchLanguage(lang) {
+            localStorage.setItem('preferred-language', lang);
+            document.documentElement.lang = lang;
+            document.querySelectorAll('.lang-menu-btn').forEach(btn => { btn.classList.remove('active'); if (btn.textContent.toLowerCase().includes(lang)) btn.classList.add('active'); });
+            showToast('Тіл өзгертілді: ' + lang.toUpperCase());
+        }
+
+        function toggleTheme() {
+            const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('preferred-theme', newTheme);
+            document.documentElement.setAttribute('data-theme', newTheme);
+            const icon = document.getElementById('themeMenuBtn').querySelector('i');
+            icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            showToast(newTheme === 'dark' ? '🌙 Қараңғы режим' : '☀️ Жарық режим');
+        }
+
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            showToast('📨 Хабарлама жіберілді! Біз жақын арада жауап береміз.');
+            this.reset();
+            document.getElementById('charCount').textContent = '0';
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedLang = localStorage.getItem('preferred-language') || 'kk';
+            const savedTheme = localStorage.getItem('preferred-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            if (savedTheme === 'dark') document.getElementById('themeMenuBtn').querySelector('i').className = 'fas fa-sun';
+            window.addEventListener('load', checkInternet);
+            window.addEventListener('online', checkInternet);
+            window.addEventListener('offline', checkInternet);
+            document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+        });
+    </script>
+</body>
+</html>

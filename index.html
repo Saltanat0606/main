@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Menu & Calories - Ас мәзірі мен калориялар</title>
+    <meta name="description" content="Калория санап, өзінің мәзіріңді құр!">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%236366f1'/><text x='50' y='70' font-size='50' text-anchor='middle' fill='white'>🍎</text></svg>">
+    
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MenuCal">
+    <meta name="theme-color" content="#6366f1">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --border-color: #e2e8f0;
+            --card-bg: #ffffff;
+            --card-shadow: 0 20px 40px -15px rgba(0,0,0,0.1);
+            --header-bg: linear-gradient(135deg, #6366f1, #8b5cf6);
+            --header-text: #ffffff;
+            --footer-bg: #0f172a;
+            --footer-text: #f8fafc;
+            --button-primary: #6366f1;
+            --button-primary-hover: #4f46e5;
+            --button-success: #10b981;
+            --button-success-hover: #059669;
+            --input-bg: #ffffff;
+            --input-border: #e2e8f0;
+            --modal-bg: #ffffff;
+            --shadow-color: rgba(99, 102, 241, 0.1);
+            --error-color: #ef4444;
+            --success-color: #10b981;
+            --transition: all 0.3s ease;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --border-color: #334155;
+            --card-bg: #1e293b;
+            --card-shadow: 0 20px 40px -15px rgba(0,0,0,0.5);
+            --header-bg: linear-gradient(135deg, #4f46e5, #7c3aed);
+            --header-text: #ffffff;
+            --footer-bg: #020617;
+            --footer-text: #f8fafc;
+            --button-primary: #818cf8;
+            --button-primary-hover: #6366f1;
+            --button-success: #34d399;
+            --button-success-hover: #10b981;
+            --input-bg: #334155;
+            --input-border: #475569;
+            --modal-bg: #1e293b;
+            --shadow-color: rgba(0,0,0,0.5);
+            --error-color: #f87171;
+            --success-color: #34d399;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--bg-primary);
+            transition: var(--transition);
+        }
+
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+
+        /* Анимациялар */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* Офлайн хабарлама */
+        #offlineAlert {
+            display: none;
+            background: #ef4444;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            font-size: 14px;
+        }
+
+        /* Хедер */
+        .header {
+            background: var(--header-bg);
+            color: var(--header-text);
+            padding: 16px 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header .container { display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; gap: 12px; }
+        .logo i { font-size: 2rem; }
+        .logo h1 { font-size: 1.8rem; font-weight: 700; background: linear-gradient(to right, #fff, #e0e7ff); background-clip: text; color: transparent; }
+
+        /* Бургер-меню */
+        .burger-icon {
+            width: 48px; height: 48px; background: rgba(255,255,255,0.15); border-radius: 16px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px;
+            cursor: pointer; transition: var(--transition); border: 1px solid rgba(255,255,255,0.2);
+        }
+        .burger-icon:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
+        .burger-icon span { width: 24px; height: 2px; background: white; border-radius: 2px; transition: var(--transition); }
+        .burger-icon.active span:nth-child(1) { transform: rotate(45deg) translate(6px, 6px); width: 28px; }
+        .burger-icon.active span:nth-child(2) { opacity: 0; transform: translateX(-10px); }
+        .burger-icon.active span:nth-child(3) { transform: rotate(-45deg) translate(6px, -6px); width: 28px; }
+
+        /* Меню панелі */
+        .menu-panel {
+            position: fixed; top: 0; right: -420px; width: 380px; height: 100vh;
+            background: var(--modal-bg); box-shadow: -10px 0 40px var(--shadow-color);
+            z-index: 1000; transition: right 0.5s ease; overflow-y: auto;
+            padding: 28px; border-left: 1px solid var(--border-color);
+        }
+        .menu-panel.active { right: 0; }
+        .menu-panel-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 2px solid var(--border-color); margin-bottom: 24px; }
+        .menu-panel-header h3 { color: var(--text-primary); font-size: 1.6rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .close-menu { width: 42px; height: 42px; background: var(--bg-secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); color: var(--text-primary); font-size: 1.2rem; }
+        .close-menu:hover { background: var(--error-color); color: white; transform: rotate(180deg); }
+        .menu-list { list-style: none; margin-bottom: 28px; }
+        .menu-list li { margin-bottom: 8px; }
+        .menu-list li a { display: flex; align-items: center; gap: 16px; padding: 14px 20px; color: var(--text-primary); text-decoration: none; border-radius: 16px; transition: var(--transition); font-weight: 500; }
+        .menu-list li a i { width: 24px; color: var(--button-primary); font-size: 1.2rem; }
+        .menu-list li a:hover { background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1)); transform: translateX(8px); }
+        .menu-list li a.active { background: linear-gradient(135deg, var(--button-primary), var(--button-primary-hover)); color: white; }
+        .menu-list li a.active i { color: white; }
+        .menu-section { margin-bottom: 28px; padding: 0 4px; }
+        .menu-section h4 { color: var(--text-secondary); margin-bottom: 16px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+        .language-buttons { display: flex; gap: 12px; }
+        .lang-menu-btn { flex: 1; padding: 12px; border: 2px solid var(--button-primary); background: transparent; color: var(--text-primary); border-radius: 12px; cursor: pointer; font-weight: 600; transition: var(--transition); font-size: 1rem; }
+        .lang-menu-btn:hover { background: rgba(99, 102, 241, 0.1); transform: translateY(-3px); }
+        .lang-menu-btn.active { background: var(--button-primary); color: white; }
+        .theme-menu-btn { width: 100%; padding: 14px; border: none; background: linear-gradient(135deg, var(--button-primary), var(--button-primary-hover)); color: white; border-radius: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: var(--transition); font-weight: 600; }
+        .theme-menu-btn:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(99, 102, 241, 0.4); }
+        .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; display: none; }
+        .menu-overlay.active { display: block; animation: fadeIn 0.3s ease; }
+
+        /* Герой */
+        .hero {
+            background: linear-gradient(rgba(15,23,42,0.7), rgba(15,23,42,0.7)), url('https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=1200');
+            background-size: cover; background-position: center; color: white; text-align: center; padding: 120px 0;
+        }
+        .hero h2 { font-size: 3rem; margin-bottom: 20px; font-weight: 800; animation: slideDown 0.8s ease; }
+        .hero p { font-size: 1.2rem; max-width: 600px; margin: 0 auto 30px; animation: fadeIn 0.8s ease 0.3s both; }
+        .btn-start { display: inline-block; background: var(--button-success); color: white; padding: 16px 48px; border-radius: 60px; text-decoration: none; font-size: 1.2rem; font-weight: 600; transition: var(--transition); animation: scaleIn 0.8s ease 0.6s both; }
+        .btn-start:hover { background: var(--button-success-hover); transform: translateY(-3px); box-shadow: 0 15px 35px rgba(16,185,129,0.3); }
+
+        /* AI секция */
+        .ai-section { background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 80px 0; color: white; text-align: center; }
+        .ai-section h2 { font-size: 2.5rem; margin-bottom: 16px; }
+        .ai-section p { font-size: 1.2rem; margin-bottom: 40px; }
+        .ai-buttons { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; }
+        .ai-btn {
+            background: white; border: none; padding: 28px 24px; border-radius: 24px; cursor: pointer;
+            transition: var(--transition); display: flex; flex-direction: column; align-items: center; gap: 12px;
+            min-width: 200px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); animation: fadeIn 0.8s ease;
+        }
+        .ai-btn:hover { transform: translateY(-10px); box-shadow: 0 30px 60px rgba(0,0,0,0.2); }
+        .ai-btn i { font-size: 3rem; color: #6366f1; }
+        .ai-btn span { font-size: 1.2rem; font-weight: 600; color: #0f172a; }
+        .ai-btn small { color: #64748b; font-size: 0.9rem; }
+
+        /* Галерея */
+        .gallery { padding: 80px 0; background: var(--bg-secondary); }
+        .gallery h2 { text-align: center; font-size: 2.5rem; margin-bottom: 40px; color: var(--text-primary); }
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+        .gallery-item { position: relative; overflow: hidden; border-radius: 20px; box-shadow: var(--card-shadow); animation: scaleIn 0.6s ease; }
+        .gallery-item img { width: 100%; height: 250px; object-fit: cover; transition: transform 0.6s; }
+        .gallery-item:hover img { transform: scale(1.1); }
+        .gallery-caption { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); color: white; padding: 20px; text-align: center; transform: translateY(100%); transition: transform 0.4s; }
+        .gallery-item:hover .gallery-caption { transform: translateY(0); }
+
+        /* AI Чат */
+        .chat-widget { position: fixed; bottom: 30px; right: 30px; z-index: 1000; }
+        .chat-btn { width: 70px; height: 70px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; cursor: pointer; box-shadow: 0 10px 30px rgba(99,102,241,0.4); transition: var(--transition); }
+        .chat-btn:hover { transform: scale(1.1); }
+        .chat-box { position: absolute; bottom: 90px; right: 0; width: 380px; background: var(--modal-bg); border-radius: 20px; box-shadow: 0 20px 50px var(--shadow-color); display: none; overflow: hidden; border: 1px solid var(--border-color); }
+        .chat-box.active { display: block; animation: scaleIn 0.3s; }
+        .chat-header { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .chat-header h3 { display: flex; align-items: center; gap: 8px; font-size: 1.2rem; }
+        .chat-header h3 i { font-size: 1.5rem; }
+        .chat-close { cursor: pointer; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: var(--transition); font-size: 1.2rem; }
+        .chat-close:hover { background: rgba(255,255,255,0.2); transform: rotate(90deg); }
+        .chat-messages { height: 400px; overflow-y: auto; padding: 20px; background: var(--bg-secondary); display: flex; flex-direction: column; gap: 12px; }
+        .message { max-width: 85%; padding: 12px 18px; border-radius: 18px; word-wrap: break-word; animation: fadeIn 0.3s; line-height: 1.5; font-size: 0.95rem; }
+        .ai-message { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; align-self: flex-start; border-bottom-left-radius: 5px; }
+        .user-message { background: linear-gradient(135deg, #10b981, #059669); color: white; align-self: flex-end; border-bottom-right-radius: 5px; }
+        .message-time { font-size: 0.65rem; opacity: 0.7; margin-top: 5px; text-align: right; }
+        .typing-indicator { display: flex; gap: 5px; padding: 12px 18px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 18px; align-self: flex-start; margin-bottom: 8px; border-bottom-left-radius: 5px; }
+        .typing-indicator span { width: 8px; height: 8px; background: white; border-radius: 50%; animation: typing 1.4s infinite ease-in-out; }
+        .typing-indicator span:nth-child(1) { animation-delay: 0s; }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.6; } 30% { transform: translateY(-10px); opacity: 1; } }
+        .chat-input { display: flex; padding: 20px; background: var(--modal-bg); border-top: 1px solid var(--border-color); gap: 10px; }
+        .chat-input input { flex: 1; padding: 14px 18px; border: 2px solid var(--input-border); border-radius: 30px; outline: none; background: var(--input-bg); color: var(--text-primary); font-size: 0.95rem; transition: var(--transition); }
+        .chat-input input:focus { border-color: var(--button-primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+        .chat-input button { width: 52px; height: 52px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none; border-radius: 50%; cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .chat-input button:hover:not(:disabled) { transform: scale(1.1); box-shadow: 0 5px 15px rgba(99,102,241,0.4); }
+        .chat-input button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Модаль */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--modal-bg); padding: 40px; border-radius: 30px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 30px 60px var(--shadow-color); animation: scaleIn 0.4s; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--border-color); }
+        .modal-header h2 { color: var(--text-primary); font-size: 1.8rem; display: flex; align-items: center; gap: 10px; }
+        .modal-close { font-size: 2rem; cursor: pointer; color: var(--text-secondary); transition: var(--transition); }
+        .modal-close:hover { color: var(--error-color); transform: rotate(90deg); }
+        .rec-card { background: var(--bg-secondary); padding: 20px; border-radius: 16px; margin-bottom: 16px; border-left: 4px solid #6366f1; }
+        .rec-card h4 { color: var(--text-primary); margin-bottom: 8px; font-size: 1.1rem; }
+        .rec-card p { color: var(--text-secondary); margin: 4px 0; }
+        .advice-input { width: 100%; padding: 15px; margin-bottom: 15px; border: 2px solid var(--input-border); border-radius: 12px; background: var(--input-bg); color: var(--text-primary); font-size: 1rem; }
+        .advice-input:focus { border-color: var(--button-primary); outline: none; }
+        .advice-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, var(--button-primary), var(--button-primary-hover)); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: var(--transition); }
+        .advice-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(99,102,241,0.3); }
+
+        /* BMI Калькулятор внутри модалки */
+        .bmi-input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid var(--border-color); border-radius: 12px; background: var(--input-bg); color: var(--text-primary); font-size: 1rem; }
+        .bmi-result { text-align: center; padding: 15px; border-radius: 16px; margin-top: 15px; }
+        .bmi-underweight { background: #fef3c7; color: #d97706; }
+        .bmi-normal { background: #d1fae5; color: #059669; }
+        .bmi-overweight { background: #fed7aa; color: #ea580c; }
+        .bmi-obese { background: #fee2e2; color: #dc2626; }
+
+        /* Футер */
+        .footer { background: var(--footer-bg); color: var(--footer-text); padding: 40px 0; text-align: center; }
+        .footer-links { display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; flex-wrap: wrap; }
+        .footer-links a { color: var(--footer-text); text-decoration: none; opacity: 0.8; transition: var(--transition); }
+        .footer-links a:hover { opacity: 1; color: var(--button-primary); }
+        .footer p { opacity: 0.8; }
+
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(120px);
+            background: var(--modal-bg); color: var(--text-primary); padding: 14px 30px; border-radius: 60px;
+            box-shadow: 0 15px 40px var(--shadow-color); z-index: 10000; opacity: 0; transition: all 0.5s;
+            border-left: 4px solid var(--success-color); font-weight: 500;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        @media (max-width: 768px) { .menu-panel { width: 100%; right: -100%; } .hero h2 { font-size: 2.2rem; } .chat-box { width: 320px; } }
+        @media (max-width: 480px) { .logo h1 { font-size: 1.4rem; } .hero h2 { font-size: 1.8rem; } .chat-box { width: 300px; } .chat-messages { height: 350px; } }
+    </style>
+</head>
+<body>
+    <!-- Офлайн хабарлама -->
+    <div id="offlineAlert">
+        <i class="fas fa-wifi"></i> Интернет жоқ. Қосымша офлайн режимде жұмыс істейді. / Нет интернета. Приложение работает офлайн.
+    </div>
+
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-apple-alt"></i>
+                <h1 class="lang-text" data-key="site-title">Menu & Calories</h1>
+            </div>
+            <div class="burger-icon" id="burgerIcon" onclick="toggleMenu()">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    </header>
+
+    <div class="menu-overlay" id="menuOverlay" onclick="closeMenu()"></div>
+
+    <div class="menu-panel" id="menuPanel">
+        <div class="menu-panel-header">
+            <h3><i class="fas fa-bars"></i> <span class="lang-text" data-key="menu-title">Меню</span></h3>
+            <div class="close-menu" onclick="closeMenu()"><i class="fas fa-times"></i></div>
+        </div>
+        <ul class="menu-list">
+            <li><a href="index.html" class="active"><i class="fas fa-home"></i> <span class="lang-text" data-key="home">Басты бет</span></a></li>
+            <li><a href="pages/about.html"><i class="fas fa-info-circle"></i> <span class="lang-text" data-key="about">Біз туралы</span></a></li>
+            <li><a href="pages/blog.html"><i class="fas fa-blog"></i> <span class="lang-text" data-key="blog">Блог</span></a></li>
+            <li><a href="pages/contact.html"><i class="fas fa-address-book"></i> <span class="lang-text" data-key="contact">Байланыс</span></a></li>
+            <li><a href="pages/menu.html"><i class="fas fa-utensils"></i> <span class="lang-text" data-key="menu">Мәзір</span></a></li>
+            <li><a href="pages/calories.html"><i class="fas fa-fire"></i> <span class="lang-text" data-key="calories">Калория</span></a></li>
+            <li><a href="pages/dashboard.html"><i class="fas fa-chart-line"></i> <span class="lang-text" data-key="dashboard">Бақылау</span></a></li>
+            <li><a href="pages/profile.html"><i class="fas fa-user"></i> <span class="lang-text" data-key="profile">Профиль</span></a></li>
+            <li><a href="pages/login.html"><i class="fas fa-sign-in-alt"></i> <span class="lang-text" data-key="login">Кіру</span></a></li>
+            <li><a href="pages/register.html"><i class="fas fa-user-plus"></i> <span class="lang-text" data-key="register">Тіркелу</span></a></li>
+        </ul>
+        <div class="menu-section">
+            <h4><i class="fas fa-globe"></i> <span class="lang-text" data-key="language">Тіл</span></h4>
+            <div class="language-buttons">
+                <button class="lang-menu-btn" onclick="switchLanguage('kk')">KZ</button>
+                <button class="lang-menu-btn" onclick="switchLanguage('ru')">RU</button>
+                <button class="lang-menu-btn" onclick="switchLanguage('en')">EN</button>
+            </div>
+        </div>
+        <div class="menu-section">
+            <h4><i class="fas fa-palette"></i> <span class="lang-text" data-key="theme">Тема</span></h4>
+            <button class="theme-menu-btn" onclick="toggleTheme()" id="themeMenuBtn">
+                <i class="fas fa-moon"></i> <span class="lang-text" data-key="dark-mode">Қараңғы режим</span>
+            </button>
+        </div>
+    </div>
+
+    <section class="hero">
+        <div class="container">
+            <h2 class="lang-text" data-key="hero-title">Ас мәзірін құру және калория санау</h2>
+            <p class="lang-text" data-key="hero-text">Күнделікті ас мәзірін құрып, тағамдардың калориясын автоматты түрде есептеңіз.</p>
+            <a href="pages/register.html" class="btn-start"><i class="fas fa-play-circle"></i> <span class="lang-text" data-key="start">Бастау</span></a>
+        </div>
+    </section>
+
+    <section class="ai-section">
+        <div class="container">
+            <h2><i class="fas fa-robot"></i> <span class="lang-text" data-key="ai-title">Жасанды Интеллект көмекші</span></h2>
+            <p class="lang-text" data-key="ai-text">AI сізге дұрыс тамақтануға көмектеседі</p>
+            <div class="ai-buttons">
+                <button class="ai-btn" onclick="showAIRecommendations()">
+                    <i class="fas fa-utensils"></i>
+                    <span class="lang-text" data-key="ai-recommend">Тағам ұсыну</span>
+                    <small class="lang-text" data-key="ai-recommend-small">Бүгін не жеуге болады?</small>
+                </button>
+                <button class="ai-btn" onclick="showAIAnalysis()">
+                    <i class="fas fa-chart-line"></i>
+                    <span class="lang-text" data-key="ai-analysis">Күндік анализ</span>
+                    <small class="lang-text" data-key="ai-analysis-small">Тамақтануыңызды тексеру</small>
+                </button>
+                <button class="ai-btn" onclick="showAIWeeklyPlan()">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span class="lang-text" data-key="ai-weekly">Апталық жоспар</span>
+                    <small class="lang-text" data-key="ai-weekly-small">7 күндік мәзір</small>
+                </button>
+                <button class="ai-btn" onclick="showAIAdvice()">
+                    <i class="fas fa-question-circle"></i>
+                    <span class="lang-text" data-key="ai-advice">Кеңес алу</span>
+                    <small class="lang-text" data-key="ai-advice-small">Сұрақ қою</small>
+                </button>
+                <button class="ai-btn" onclick="showBMICalculator()">
+                    <i class="fas fa-chart-simple"></i>
+                    <span>BMI есептеу</span>
+                    <small>Дене салмағы индексі</small>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section class="gallery">
+        <div class="container">
+            <h2><i class="fas fa-images"></i> <span class="lang-text" data-key="gallery-title">Галерея</span></h2>
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400" alt="Салат">
+                    <div class="gallery-caption lang-text" data-key="gallery-1">Жасыл салат - 150 калория</div>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400" alt="Пайдалы тағам">
+                    <div class="gallery-caption lang-text" data-key="gallery-2">Пайдалы тағам - 350 калория</div>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=400" alt="Жемістер">
+                    <div class="gallery-caption lang-text" data-key="gallery-3">Жеміс ассорти - 200 калория</div>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1505252585461-04db1eb84625?w=400" alt="Смузи">
+                    <div class="gallery-caption lang-text" data-key="gallery-4">Жеміс смузи - 180 калория</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="pages/about.html" class="lang-text" data-key="about">Біз туралы</a>
+                <a href="pages/blog.html" class="lang-text" data-key="blog">Блог</a>
+                <a href="pages/contact.html" class="lang-text" data-key="contact">Байланыс</a>
+                <a href="pages/menu.html" class="lang-text" data-key="menu">Мәзір</a>
+                <a href="pages/calories.html" class="lang-text" data-key="calories">Калория</a>
+                <a href="pages/dashboard.html" class="lang-text" data-key="dashboard">Бақылау</a>
+                <a href="pages/profile.html" class="lang-text" data-key="profile">Профиль</a>
+                <a href="pages/login.html" class="lang-text" data-key="login">Кіру</a>
+                <a href="pages/register.html" class="lang-text" data-key="register">Тіркелу</a>
+            </div>
+            <p>&copy; 2026 <span class="lang-text" data-key="site-title">Menu & Calories</span>. <span class="lang-text" data-key="copyright">Барлық құқықтар қорғалған.</span></p>
+        </div>
+    </footer>
+
+    <div class="chat-widget">
+        <div class="chat-btn" onclick="toggleChat()"><i class="fas fa-robot"></i></div>
+        <div class="chat-box" id="chatBox">
+            <div class="chat-header">
+                <h3><i class="fas fa-robot"></i> <span class="lang-text" data-key="ai-chat">AI көмекші</span></h3>
+                <div class="chat-close" onclick="toggleChat()">✕</div>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message ai-message" id="welcomeMessage">👋 Сәлеметсіз бе! Мен AI көмекшімін. Кез келген сұрағыңызды қоюға болады. Мысалы: "Калория деген не?", "Бешбармақтың калориясы", "Спорт алдында не жеу керек?"</div>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="chatInput" class="lang-placeholder" data-key="ai-placeholder" placeholder="Сұрағыңызды жазыңыз..." onkeypress="if(event.key === 'Enter') sendMessage()">
+                <button onclick="sendMessage()" id="sendButton"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle"><i class="fas fa-robot"></i> AI көмекші</h2>
+                <div class="modal-close" onclick="closeModal()">✕</div>
+            </div>
+            <div id="modalContent" style="text-align: center; padding: 30px;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 2.5rem; color: #6366f1;"></i>
+                <p style="margin-top: 15px;">Жүктелуде...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============ API КІЛТІ ӨШІРІЛДІ (қауіпсіздік үшін) ============
+        const OPENAI_API_KEY = null;
+        
+        // ============ ТІЛДЕР ============
+        const translations = {
+            kk: {
+                'site-title': 'Menu & Calories', 'home': 'Басты бет', 'about': 'Біз туралы',
+                'blog': 'Блог', 'contact': 'Байланыс', 'menu': 'Мәзір', 'calories': 'Калория',
+                'dashboard': 'Бақылау', 'profile': 'Профиль', 'login': 'Кіру', 'register': 'Тіркелу',
+                'menu-title': 'Меню', 'language': 'Тіл', 'theme': 'Тема', 'dark-mode': 'Қараңғы режим',
+                'hero-title': 'Ас мәзірін құру және калория санау', 'hero-text': 'Күнделікті ас мәзірін құрып, тағамдардың калориясын автоматты түрде есептеңіз.',
+                'start': 'Бастау', 'ai-title': 'Жасанды Интеллект көмекші', 'ai-text': 'AI сізге дұрыс тамақтануға көмектеседі',
+                'ai-recommend': 'Тағам ұсыну', 'ai-recommend-small': 'Бүгін не жеуге болады?',
+                'ai-analysis': 'Күндік анализ', 'ai-analysis-small': 'Тамақтануыңызды тексеру',
+                'ai-weekly': 'Апталық жоспар', 'ai-weekly-small': '7 күндік мәзір',
+                'ai-advice': 'Кеңес алу', 'ai-advice-small': 'Сұрақ қою',
+                'ai-chat': 'AI көмекші', 'ai-placeholder': 'Сұрағыңызды жазыңыз...',
+                'gallery-title': 'Галерея', 'gallery-1': 'Жасыл салат - 150 калория',
+                'gallery-2': 'Пайдалы тағам - 350 калория', 'gallery-3': 'Жеміс ассорти - 200 калория',
+                'gallery-4': 'Жеміс смузи - 180 калория', 'copyright': 'Барлық құқықтар қорғалған.',
+                'thinking': 'Ойлануда...', 'error': 'Қате шықты. Қайтадан сұраңыз.'
+            },
+            ru: {
+                'site-title': 'Menu & Calories', 'home': 'Главная', 'about': 'О нас',
+                'blog': 'Блог', 'contact': 'Контакты', 'menu': 'Меню', 'calories': 'Калории',
+                'dashboard': 'Панель', 'profile': 'Профиль', 'login': 'Вход', 'register': 'Регистрация',
+                'menu-title': 'Меню', 'language': 'Язык', 'theme': 'Тема', 'dark-mode': 'Темный режим',
+                'hero-title': 'Составление меню и подсчет калорий', 'hero-text': 'Составляйте меню и автоматически рассчитывайте калории.',
+                'start': 'Начать', 'ai-title': 'ИИ помощник', 'ai-text': 'ИИ поможет вам правильно питаться',
+                'ai-recommend': 'Рекомендовать', 'ai-recommend-small': 'Что съесть сегодня?',
+                'ai-analysis': 'Анализ дня', 'ai-analysis-small': 'Проверить питание',
+                'ai-weekly': 'План на неделю', 'ai-weekly-small': 'Меню на 7 дней',
+                'ai-advice': 'Совет', 'ai-advice-small': 'Задать вопрос',
+                'ai-chat': 'ИИ помощник', 'ai-placeholder': 'Напишите ваш вопрос...',
+                'gallery-title': 'Галерея', 'gallery-1': 'Зеленый салат - 150 калорий',
+                'gallery-2': 'Полезная еда - 350 калорий', 'gallery-3': 'Фруктовое ассорти - 200 калорий',
+                'gallery-4': 'Фруктовый смузи - 180 калорий', 'copyright': 'Все права защищены.',
+                'thinking': 'Думаю...', 'error': 'Ошибка. Попробуйте еще раз.'
+            },
+            en: {
+                'site-title': 'Menu & Calories', 'home': 'Home', 'about': 'About',
+                'blog': 'Blog', 'contact': 'Contact', 'menu': 'Menu', 'calories': 'Calories',
+                'dashboard': 'Dashboard', 'profile': 'Profile', 'login': 'Login', 'register': 'Register',
+                'menu-title': 'Menu', 'language': 'Language', 'theme': 'Theme', 'dark-mode': 'Dark mode',
+                'hero-title': 'Create Menu and Count Calories', 'hero-text': 'Create menus and automatically calculate calories.',
+                'start': 'Start', 'ai-title': 'AI Assistant', 'ai-text': 'AI helps you eat healthy',
+                'ai-recommend': 'Recommend', 'ai-recommend-small': 'What to eat today?',
+                'ai-analysis': 'Daily Analysis', 'ai-analysis-small': 'Check nutrition',
+                'ai-weekly': 'Weekly Plan', 'ai-weekly-small': '7-day menu',
+                'ai-advice': 'Advice', 'ai-advice-small': 'Ask question',
+                'ai-chat': 'AI Assistant', 'ai-placeholder': 'Write your question...',
+                'gallery-title': 'Gallery', 'gallery-1': 'Green salad - 150 calories',
+                'gallery-2': 'Healthy food - 350 calories', 'gallery-3': 'Fruit assortment - 200 calories',
+                'gallery-4': 'Fruit smoothie - 180 calories', 'copyright': 'All rights reserved.',
+                'thinking': 'Thinking...', 'error': 'Error. Please try again.'
+            }
+        };
+
+        // ============ ИНТЕРНЕТТІ ТЕКСЕРУ ============
+        function checkInternet() {
+            const alertDiv = document.getElementById('offlineAlert');
+            if (!navigator.onLine) alertDiv.style.display = 'block';
+            else alertDiv.style.display = 'none';
+        }
+        window.addEventListener('load', checkInternet);
+        window.addEventListener('online', checkInternet);
+        window.addEventListener('offline', checkInternet);
+        setInterval(checkInternet, 5000);
+
+        // ============ МЕНЮ ФУНКЦИЯЛАРЫ ============
+        function toggleMenu() {
+            document.getElementById('menuPanel').classList.toggle('active');
+            document.getElementById('menuOverlay').classList.toggle('active');
+            document.getElementById('burgerIcon').classList.toggle('active');
+            document.body.style.overflow = document.body.style.overflow === 'hidden' ? 'auto' : 'hidden';
+        }
+        function closeMenu() {
+            document.getElementById('menuPanel').classList.remove('active');
+            document.getElementById('menuOverlay').classList.remove('active');
+            document.getElementById('burgerIcon').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+        function switchLanguage(lang) {
+            localStorage.setItem('preferred-language', lang);
+            document.documentElement.lang = lang;
+            document.querySelectorAll('.lang-text').forEach(el => {
+                const key = el.getAttribute('data-key');
+                if (key && translations[lang] && translations[lang][key]) el.textContent = translations[lang][key];
+            });
+            document.querySelectorAll('.lang-placeholder').forEach(el => {
+                const key = el.getAttribute('data-key');
+                if (key && translations[lang] && translations[lang][key]) el.placeholder = translations[lang][key];
+            });
+            document.querySelectorAll('.lang-menu-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.toLowerCase().includes(lang)) btn.classList.add('active');
+            });
+            showToast(translations[lang]['language'] + ' ' + lang.toUpperCase());
+        }
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const newTheme = current === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('preferred-theme', newTheme);
+            document.documentElement.setAttribute('data-theme', newTheme);
+            const icon = document.getElementById('themeMenuBtn').querySelector('i');
+            icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            showToast(newTheme === 'dark' ? '🌙 Қараңғы режим' : '☀️ Жарық режим');
+        }
+
+        // ============ УЛУЧШЕННЫЙ AI-ПОМОЩНИК ============
+        const AIAssistant = {
+            context: { lastTopic: null, userName: null, userGoal: null, userWeight: null, userHeight: null, userAge: null },
+            
+            loadUserContext: function() {
+                try {
+                    const userData = JSON.parse(localStorage.getItem('menuCalories_userData')) || {};
+                    const healthData = JSON.parse(localStorage.getItem('menuCalories_healthData')) || {};
+                    this.context.userName = userData.fullname?.split(' ')[0] || null;
+                    this.context.userGoal = healthData.goal || null;
+                    this.context.userAge = healthData.age || null;
+                    this.context.userWeight = healthData.weight || null;
+                    this.context.userHeight = healthData.height || null;
+                } catch(e) {}
+            },
+            
+            knowledgeBase: {
+                'калория': '🔥 Калория — энергия өлшемі. Ересек адамға күніне 2000-2500 ккал қажет.',
+                'протеин': '🥩 Протеин — бұлшықеттердің құрылыс материалы. Тауық (31г/100г), балық (20-25г), жұмыртқа (13г).',
+                'белок': '🥚 Белок күніне 1.5-2г/кг қажет. Спортшыларға көбірек керек.',
+                'май': '🧈 Пайдалы майлар: авокадо, жаңғақтар, зәйтүн майы, балық. Транс майлардан аулақ болыңыз.',
+                'көмірсу': '🍚 Көмірсулар — энергия көзі. Күрделі көмірсулар (сұлы, қарақұмық) пайдалы.',
+                'су': '💧 Күніне 2-3 литр су ішіңіз. Тамақтан 30 минут бұрын ішкен дұрыс.',
+                'спорт': '🏋️ Аптасына 3-4 рет жаттығу. Кардио + күш жаттығуларын біріктіріңіз.',
+                'бешбармақ': '🍲 Бешбармак ~300 ккал/100г. Құрамы: ет, тесто, сорпа. Белокқа бай.',
+                'қуырдақ': '🍖 Куырдак ~200-250 ккал/100г. Ет және субпродукттар.',
+                'бауырсақ': '🥨 Бауырсак ~350-400 ккал/100г. Жоғары калориялы, шектеулі мөлшерде жеңіз.',
+                'қазы': '🥩 Казы ~450-500 ккал/100г. Құнарлы, бірақ майлы.',
+                'қымыз': '🥛 Кумыс ~50 ккал/100мл. Пробиотиктер, В тобы витаминдері.',
+                'шұбат': '🥛 Шубат ~60-70 ккал/100мл. Витамин С, темір, кальций.',
+                'құрт': '🧀 Курт ~250-350 ккал/100г. Кальций, белок. Ұзақ сақталады.'
+            },
+            
+            getResponse: function(question) {
+                this.loadUserContext();
+                const q = question.toLowerCase();
+                
+                // Персональные ответы
+                if (this.context.userWeight && (q.includes('менің норма') || q.includes('сколько мне калорий'))) {
+                    const rec = this.context.userWeight * 24;
+                    return `📊 Сіздің салмағыңыз ${this.context.userWeight} кг. Шамамен күндік норма: ~${Math.round(rec)} ккал. Нақты есептеу үшін бой, жас, белсенділік керек.`;
+                }
+                
+                if (q.includes('тағам ұсын') || q.includes('что поесть')) {
+                    if (this.context.userGoal === 'lose') return '🥗 Салмақ жоғалту үшін: тауық еті + көкөністер, балық + брокколи, грек йогурты.';
+                    if (this.context.userGoal === 'gain') return '💪 Салмақ қосу үшін: тауық + күріш, творог + жаңғақтар, протеин коктейлі.';
+                    return '⚖️ Теңгерімді тамақтану үшін: балық + киноа, тауық + гречка, көкөніс рагу.';
+                }
+                
+                // Поиск по базе знаний
+                for (let [key, answer] of Object.entries(this.knowledgeBase)) {
+                    if (q.includes(key)) return answer;
+                }
+                
+                return this.getRandomFallback();
+            },
+            
+            getRandomFallback: function() {
+                const fallbacks = [
+                    '🤔 Қызықты сұрақ! Тамақтану, калория, протеин, майлар, көмірсулар, спорт туралы сұраңыз.',
+                    '💡 Мен калория есептеуге, тағам ұсынуға, дұрыс тамақтану кеңестеріне көмектесемін. Нақтырақ сұраңыз!',
+                    '🍎 Сұрағыңызға жауап бере алмаймын. Бірақ калориялар, БЖУ, диеталар, ұлттық тағамдар туралы білемін.'
+                ];
+                return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+            },
+            
+            answer: function(question, chatContainer, sendBtn) {
+                let answer = this.getResponse(question);
+                const time = new Date().toLocaleTimeString('kk-KZ', { hour: '2-digit', minute: '2-digit' });
+                chatContainer.innerHTML += `<div class="message ai-message">${answer}<div class="message-time">${time}</div></div>`;
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                if (sendBtn) sendBtn.disabled = false;
+            }
+        };
+
+        // ============ ЧАТ ============
+        function toggleChat() {
+            document.getElementById('chatBox').classList.toggle('active');
+            if (document.getElementById('chatBox').classList.contains('active')) {
+                document.getElementById('chatInput').focus();
+            }
+        }
+        
+        function showTypingIndicator() {
+            const chat = document.getElementById('chatMessages');
+            const indicator = document.createElement('div');
+            indicator.className = 'typing-indicator';
+            indicator.id = 'typingIndicator';
+            indicator.innerHTML = '<span></span><span></span><span></span>';
+            chat.appendChild(indicator);
+            chat.scrollTop = chat.scrollHeight;
+        }
+        
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) indicator.remove();
+        }
+        
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+            const chat = document.getElementById('chatMessages');
+            const sendBtn = document.getElementById('sendButton');
+            const time = new Date().toLocaleTimeString('kk-KZ', { hour: '2-digit', minute: '2-digit' });
+            chat.innerHTML += `<div class="message user-message">${msg}<div class="message-time">${time}</div></div>`;
+            input.value = '';
+            chat.scrollTop = chat.scrollHeight;
+            sendBtn.disabled = true;
+            showTypingIndicator();
+            await new Promise(resolve => setTimeout(resolve, 800));
+            removeTypingIndicator();
+            AIAssistant.answer(msg, chat, sendBtn);
+        }
+
+        // ============ AI МОДАЛЬ ФУНКЦИЯЛАРЫ ============
+        function closeModal() { document.getElementById('modal').classList.remove('active'); }
+        
+        function getLocalRecommendations(lang) {
+            if (lang === 'kk') {
+                return `<div class="rec-card"><h4>🥗 Гриль тауық</h4><p>650 ккал | Протеин: 45г</p></div>
+                        <div class="rec-card"><h4>🐟 Лосось</h4><p>580 ккал | Протеин: 40г</p></div>
+                        <div class="rec-card"><h4>🥑 Киноа салаты</h4><p>450 ккал | Протеин: 18г</p></div>
+                        <div class="rec-card"><h4>🥣 Сұлы ботқасы</h4><p>350 ккал | Протеин: 12г</p></div>`;
+            } else if (lang === 'ru') {
+                return `<div class="rec-card"><h4>🥗 Курица гриль</h4><p>650 ккал | Белки: 45г</p></div>
+                        <div class="rec-card"><h4>🐟 Лосось</h4><p>580 ккал | Белки: 40г</p></div>
+                        <div class="rec-card"><h4>🥑 Салат с киноа</h4><p>450 ккал | Белки: 18г</p></div>
+                        <div class="rec-card"><h4>🥣 Овсяная каша</h4><p>350 ккал | Белки: 12г</p></div>`;
+            } else {
+                return `<div class="rec-card"><h4>🥗 Grilled Chicken</h4><p>650 kcal | Protein: 45g</p></div>
+                        <div class="rec-card"><h4>🐟 Salmon</h4><p>580 kcal | Protein: 40g</p></div>
+                        <div class="rec-card"><h4>🥑 Quinoa Salad</h4><p>450 kcal | Protein: 18g</p></div>
+                        <div class="rec-card"><h4>🥣 Oatmeal</h4><p>350 kcal | Protein: 12g</p></div>`;
+            }
+        }
+        
+        async function showAIRecommendations() {
+            const modal = document.getElementById('modal');
+            const lang = localStorage.getItem('preferred-language') || 'kk';
+            document.getElementById('modalTitle').innerHTML = `<i class="fas fa-robot"></i> ${translations[lang]['ai-recommend']}`;
+            document.getElementById('modalContent').innerHTML = `<div style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin" style="font-size:3rem;"></i><p>${translations[lang]['thinking']}</p></div>`;
+            modal.classList.add('active');
+            await new Promise(resolve => setTimeout(resolve, 500));
+            document.getElementById('modalContent').innerHTML = getLocalRecommendations(lang);
+        }
+        
+        function showAIAnalysis() {
+            const modal = document.getElementById('modal');
+            const lang = localStorage.getItem('preferred-language') || 'kk';
+            document.getElementById('modalTitle').innerHTML = `<i class="fas fa-robot"></i> ${translations[lang]['ai-analysis']}`;
+            document.getElementById('modalContent').innerHTML = `<div class="rec-card"><h4>📊 Статистика</h4><p>Калория: 1850 ккал</p><p>Протеин: 65г</p><p>Көмірсу: 220г</p><p>Май: 55г</p></div><div class="rec-card"><h4>💬 Баға</h4><p>✅ Бүгін тамақтануыңыз теңгерімді!</p></div>`;
+            modal.classList.add('active');
+        }
+        
+        function showAIWeeklyPlan() {
+            const modal = document.getElementById('modal');
+            const lang = localStorage.getItem('preferred-language') || 'kk';
+            document.getElementById('modalTitle').innerHTML = `<i class="fas fa-robot"></i> ${translations[lang]['ai-weekly']}`;
+            document.getElementById('modalContent').innerHTML = `
+                <div class="rec-card"><h4>📅 Дүйсенбі</h4><p>Таңғы: сұлы ботқасы (350 ккал)</p><p>Түскі: тауық (450 ккал)</p><p>Кешкі: салат (250 ккал)</p></div>
+                <div class="rec-card"><h4>📅 Сейсенбі</h4><p>Таңғы: жұмыртқа (300 ккал)</p><p>Түскі: балық (400 ккал)</p><p>Кешкі: көкөніс (200 ккал)</p></div>
+                <div class="rec-card"><h4>📅 Сәрсенбі</h4><p>Таңғы: мюсли (320 ккал)</p><p>Түскі: күріш (380 ккал)</p><p>Кешкі: тофу (280 ккал)</p></div>`;
+            modal.classList.add('active');
+        }
+        
+        function showAIAdvice() {
+            const modal = document.getElementById('modal');
+            const lang = localStorage.getItem('preferred-language') || 'kk';
+            document.getElementById('modalTitle').innerHTML = `<i class="fas fa-robot"></i> ${translations[lang]['ai-advice']}`;
+            document.getElementById('modalContent').innerHTML = `
+                <input type="text" id="adviceInput" class="advice-input" placeholder="${translations[lang]['ai-placeholder']}">
+                <button class="advice-btn" onclick="getAdvice()">${translations[lang]['ai-advice']}</button>
+                <div id="adviceAnswer" style="margin-top:15px;"></div>`;
+            modal.classList.add('active');
+        }
+        
+        async function getAdvice() {
+            const question = document.getElementById('adviceInput').value;
+            if (!question) return;
+            const answer = AIAssistant.getResponse(question);
+            document.getElementById('adviceAnswer').innerHTML = `<div class="rec-card"><h4>🤖 AI:</h4><p>${answer}</p></div>`;
+        }
+        
+        // ============ BMI КАЛЬКУЛЯТОР ============
+        function showBMICalculator() {
+            const modal = document.getElementById('modal');
+            document.getElementById('modalTitle').innerHTML = `<i class="fas fa-chart-simple"></i> BMI калькулятор`;
+            document.getElementById('modalContent').innerHTML = `
+                <div style="text-align:center;">
+                    <p style="margin-bottom:15px;">Дене салмағы индексін есептеу</p>
+                    <input type="number" id="bmiHeight" class="bmi-input" placeholder="Бой (см)">
+                    <input type="number" id="bmiWeight" class="bmi-input" placeholder="Салмақ (кг)">
+                    <button class="advice-btn" onclick="calculateBMI()" style="margin-top:10px;">Есептеу</button>
+                    <div id="bmiResult" style="margin-top:20px;"></div>
+                </div>
+            `;
+            modal.classList.add('active');
+        }
+        
+        window.calculateBMI = function() {
+            const height = parseFloat(document.getElementById('bmiHeight').value) / 100;
+            const weight = parseFloat(document.getElementById('bmiWeight').value);
+            const lang = localStorage.getItem('preferred-language') || 'kk';
+            if (!height || !weight || height < 0.5 || weight < 10) {
+                document.getElementById('bmiResult').innerHTML = '<div class="rec-card" style="color:red;">Бой мен салмақты дұрыс енгізіңіз!</div>';
+                return;
+            }
+            const bmi = (weight / (height * height)).toFixed(1);
+            let category = '', categoryClass = '';
+            if (bmi < 18.5) { category = lang === 'kk' ? 'Салмақ жетіспеушілігі' : (lang === 'ru' ? 'Недостаток веса' : 'Underweight'); categoryClass = 'bmi-underweight'; }
+            else if (bmi < 25) { category = lang === 'kk' ? 'Қалыпты салмақ' : (lang === 'ru' ? 'Нормальный вес' : 'Normal weight'); categoryClass = 'bmi-normal'; }
+            else if (bmi < 30) { category = lang === 'kk' ? 'Артық салмақ' : (lang === 'ru' ? 'Избыточный вес' : 'Overweight'); categoryClass = 'bmi-overweight'; }
+            else { category = lang === 'kk' ? 'Семіздік' : (lang === 'ru' ? 'Ожирение' : 'Obese'); categoryClass = 'bmi-obese'; }
+            document.getElementById('bmiResult').innerHTML = `<div class="bmi-result ${categoryClass}"><strong>BMI: ${bmi}</strong><br>${category}</div>`;
+        };
+        
+        // ============ БАСТАПҚЫ ИНИЦИАЛИЗАЦИЯ ============
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedLang = localStorage.getItem('preferred-language') || 'kk';
+            const savedTheme = localStorage.getItem('preferred-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            switchLanguage(savedLang);
+            if (savedTheme === 'dark') {
+                document.getElementById('themeMenuBtn').querySelector('i').className = 'fas fa-sun';
+            }
+            AIAssistant.loadUserContext();
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') { closeMenu(); if (document.getElementById('modal').classList.contains('active')) closeModal(); }
+            });
+        });
+        
+        // Глобальды функциялар
+        window.toggleMenu = toggleMenu;
+        window.closeMenu = closeMenu;
+        window.switchLanguage = switchLanguage;
+        window.toggleTheme = toggleTheme;
+        window.toggleChat = toggleChat;
+        window.sendMessage = sendMessage;
+        window.closeModal = closeModal;
+        window.showAIRecommendations = showAIRecommendations;
+        window.showAIAnalysis = showAIAnalysis;
+        window.showAIWeeklyPlan = showAIWeeklyPlan;
+        window.showAIAdvice = showAIAdvice;
+        window.getAdvice = getAdvice;
+        window.showBMICalculator = showBMICalculator;
+        window.calculateBMI = calculateBMI;
+    </script>
+</body>
+</html>

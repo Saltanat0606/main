@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Профиль - Menu & Calories</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MenuCal">
+    <meta name="theme-color" content="#6366f1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --card-bg: #ffffff;
+            --card-shadow: 0 20px 40px -15px rgba(0,0,0,0.1);
+            --header-bg: linear-gradient(135deg, #6366f1, #8b5cf6);
+            --header-text: #ffffff;
+            --footer-bg: #0f172a;
+            --footer-text: #f8fafc;
+            --button-primary: #6366f1;
+            --button-primary-hover: #4f46e5;
+            --button-success: #10b981;
+            --button-success-hover: #059669;
+            --button-danger: #ef4444;
+            --input-bg: #ffffff;
+            --input-border: #e2e8f0;
+            --modal-bg: #ffffff;
+            --shadow-color: rgba(99,102,241,0.1);
+            --error-color: #ef4444;
+            --success-color: #10b981;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --card-bg: #1e293b;
+            --card-shadow: 0 20px 40px -15px rgba(0,0,0,0.5);
+            --header-bg: linear-gradient(135deg, #4f46e5, #7c3aed);
+            --header-text: #ffffff;
+            --footer-bg: #020617;
+            --footer-text: #f8fafc;
+            --button-primary: #818cf8;
+            --button-primary-hover: #6366f1;
+            --button-success: #34d399;
+            --button-success-hover: #10b981;
+            --button-danger: #f87171;
+            --input-bg: #334155;
+            --input-border: #475569;
+            --modal-bg: #1e293b;
+            --shadow-color: rgba(0,0,0,0.5);
+            --error-color: #f87171;
+            --success-color: #34d399;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--bg-primary);
+            transition: var(--transition);
+        }
+
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+        .offline-alert { display: none; background: var(--error-color); color: white; text-align: center; padding: 10px; position: fixed; top: 0; left: 0; right: 0; z-index: 9999; font-size: 14px; }
+        .offline-alert.show { display: block; }
+
+        .header { background: var(--header-bg); color: var(--header-text); padding: 16px 0; box-shadow: 0 4px 20px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        .header .container { display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; gap: 12px; }
+        .logo i { font-size: 2rem; animation: float 3s ease-in-out infinite; }
+        .logo h1 { font-size: 1.8rem; font-weight: 700; background: linear-gradient(to right, #fff, #e0e7ff); background-clip: text; color: transparent; }
+
+        .burger-icon {
+            width: 48px; height: 48px; background: rgba(255,255,255,0.15); border-radius: 16px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px;
+            cursor: pointer; transition: var(--transition); border: 1px solid rgba(255,255,255,0.2);
+        }
+        .burger-icon:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
+        .burger-icon span { width: 24px; height: 2px; background: white; border-radius: 2px; transition: var(--transition); }
+        .burger-icon.active span:nth-child(1) { transform: rotate(45deg) translate(6px,6px); width: 28px; }
+        .burger-icon.active span:nth-child(2) { opacity: 0; transform: translateX(-10px); }
+        .burger-icon.active span:nth-child(3) { transform: rotate(-45deg) translate(6px,-6px); width: 28px; }
+
+        .menu-panel {
+            position: fixed; top: 0; right: -420px; width: 380px; height: 100vh;
+            background: var(--modal-bg); box-shadow: -10px 0 40px var(--shadow-color);
+            z-index: 1000; transition: right 0.5s ease; overflow-y: auto;
+            padding: 28px; border-left: 1px solid var(--border-color);
+        }
+        .menu-panel.active { right: 0; }
+        .menu-panel-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 2px solid var(--border-color); margin-bottom: 24px; }
+        .menu-panel-header h3 { color: var(--text-primary); font-size: 1.6rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .close-menu { width: 42px; height: 42px; background: var(--bg-secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); color: var(--text-primary); font-size: 1.2rem; }
+        .close-menu:hover { background: var(--error-color); color: white; transform: rotate(180deg); }
+        .menu-list { list-style: none; margin-bottom: 28px; }
+        .menu-list li { margin-bottom: 8px; }
+        .menu-list li a { display: flex; align-items: center; gap: 16px; padding: 14px 20px; color: var(--text-primary); text-decoration: none; border-radius: 16px; transition: var(--transition); font-weight: 500; }
+        .menu-list li a i { width: 24px; color: var(--button-primary); font-size: 1.2rem; }
+        .menu-list li a:hover { background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.1)); transform: translateX(8px); }
+        .menu-list li a.active { background: linear-gradient(135deg, var(--button-primary), var(--button-primary-hover)); color: white; }
+        .menu-list li a.active i { color: white; }
+        .menu-section { margin-bottom: 28px; padding: 0 4px; }
+        .menu-section h4 { color: var(--text-secondary); margin-bottom: 16px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+        .language-buttons { display: flex; gap: 12px; }
+        .lang-menu-btn { flex: 1; padding: 12px; border: 2px solid var(--button-primary); background: transparent; color: var(--text-primary); border-radius: 12px; cursor: pointer; font-weight: 600; transition: var(--transition); font-size: 1rem; }
+        .lang-menu-btn:hover { background: rgba(99,102,241,0.1); transform: translateY(-3px); }
+        .lang-menu-btn.active { background: var(--button-primary); color: white; border-color: var(--button-primary); box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+        .theme-menu-btn { width: 100%; padding: 14px; border: none; background: linear-gradient(135deg, var(--button-primary), var(--button-primary-hover)); color: white; border-radius: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: var(--transition); font-weight: 600; }
+        .theme-menu-btn:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(99,102,241,0.4); }
+        .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; display: none; }
+        .menu-overlay.active { display: block; animation: fadeIn 0.3s ease; }
+
+        .page-header { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 40px 0; border-radius: 0 0 40px 40px; margin-bottom: 40px; }
+        .page-header .container { display: flex; align-items: center; gap: 30px; flex-wrap: wrap; }
+
+        .profile-avatar { position: relative; width: 110px; height: 110px; }
+        .avatar-img { width: 110px; height: 110px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem; border: 3px solid white; box-shadow: 0 10px 25px rgba(0,0,0,0.2); transition: var(--transition); cursor: pointer; }
+        .avatar-img:hover { transform: scale(1.05); }
+        .change-avatar { position: absolute; bottom: 0; right: 0; background: white; color: #10b981; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid white; transition: var(--transition); box-shadow: 0 5px 10px rgba(0,0,0,0.1); }
+        .change-avatar:hover { transform: scale(1.1); background: #10b981; color: white; }
+
+        .profile-title h1 { font-size: 2.2rem; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .profile-title p { opacity: 0.95; display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+
+        .color-palette { display: none; position: absolute; top: 120px; left: 0; background: var(--card-bg); padding: 12px; border-radius: 20px; box-shadow: var(--card-shadow); border: 1px solid var(--border-color); z-index: 100; gap: 8px; flex-wrap: wrap; width: 200px; }
+        .color-palette.show { display: flex; }
+        .color-option { width: 35px; height: 35px; border-radius: 50%; cursor: pointer; transition: var(--transition); border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .color-option:hover { transform: scale(1.1); }
+
+        .profile-section { padding: 20px 0 60px; }
+        .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .info-card, .goals-card { background: var(--card-bg); border-radius: 28px; padding: 28px; box-shadow: var(--card-shadow); border: 1px solid var(--border-color); transition: var(--transition); }
+        .info-card:hover, .goals-card:hover { transform: translateY(-5px); }
+        .info-card h2, .goals-card h2 { color: var(--text-primary); font-size: 1.4rem; margin-bottom: 22px; display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 2px solid var(--border-color); }
+        .info-card h2 i, .goals-card h2 i { color: var(--button-primary); }
+        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; }
+        .info-item { padding: 14px; background: var(--bg-secondary); border-radius: 16px; transition: var(--transition); border-left: 3px solid var(--button-primary); }
+        .info-item:hover { transform: translateX(5px); }
+        .info-label { color: var(--text-muted); font-size: 0.75rem; margin-bottom: 5px; display: flex; align-items: center; gap: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .info-value { font-weight: 700; color: var(--text-primary); font-size: 1rem; }
+
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 6px; color: var(--text-primary); font-weight: 500; font-size: 0.85rem; }
+        .form-control { width: 100%; padding: 12px 14px; border: 2px solid var(--input-border); border-radius: 14px; font-size: 0.95rem; background: var(--input-bg); color: var(--text-primary); transition: var(--transition); }
+        .form-control:focus { border-color: var(--button-primary); outline: none; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .btn-save { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--button-primary), var(--button-primary-hover)); color: white; border: none; border-radius: 14px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 15px; }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99,102,241,0.3); }
+
+        .goal-item { margin-bottom: 22px; }
+        .goal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
+        .goal-header strong { color: var(--text-primary); font-size: 0.95rem; display: flex; align-items: center; gap: 6px; }
+        .goal-header span { color: var(--button-primary); font-weight: 600; font-size: 0.85rem; }
+        .goal-progress { height: 8px; background: var(--bg-secondary); border-radius: 4px; overflow: hidden; }
+        .goal-progress-fill { height: 100%; background: linear-gradient(90deg, var(--button-primary), var(--button-success)); border-radius: 4px; transition: width 0.5s ease; }
+        .goal-text { color: var(--text-muted); font-size: 0.75rem; margin-top: 5px; }
+
+        .danger-zone { background: rgba(239,68,68,0.08); border: 1px solid var(--error-color); border-radius: 24px; padding: 24px; margin-top: 25px; }
+        .danger-zone h3 { color: var(--error-color); font-size: 1.2rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .danger-zone p { color: var(--text-secondary); margin-bottom: 15px; font-size: 0.85rem; }
+        .btn-danger { background: var(--error-color); color: white; padding: 10px 20px; border: none; border-radius: 40px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: var(--transition); display: inline-flex; align-items: center; gap: 8px; }
+        .btn-danger:hover { background: #dc2626; transform: translateY(-2px); }
+
+        .success-message { background: var(--success-color); color: white; padding: 12px 20px; border-radius: 60px; margin-bottom: 25px; display: none; align-items: center; gap: 10px; animation: slideDown 0.3s ease; }
+        .success-message.show { display: flex; }
+
+        .footer { background: var(--footer-bg); color: var(--footer-text); padding: 30px 0; text-align: center; margin-top: 40px; }
+        .footer-links { display: flex; justify-content: center; gap: 25px; margin-bottom: 15px; flex-wrap: wrap; }
+        .footer-links a { color: var(--footer-text); text-decoration: none; opacity: 0.8; font-size: 0.85rem; transition: var(--transition); }
+        .footer-links a:hover { opacity: 1; color: var(--button-primary); }
+        .footer p { opacity: 0.8; font-size: 0.8rem; }
+
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(120px); background: var(--modal-bg); color: var(--text-primary); padding: 10px 20px; border-radius: 50px; box-shadow: 0 10px 30px var(--shadow-color); z-index: 10000; opacity: 0; transition: all 0.4s; border-left: 4px solid var(--success-color); font-weight: 500; font-size: 0.85rem; }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        @media (max-width: 1024px) { .profile-grid { grid-template-columns: 1fr; } .info-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 768px) { .menu-panel { width: 100%; right: -100%; } .page-header .container { flex-direction: column; align-items: center; text-align: center; } .profile-title p { justify-content: center; } .info-grid { grid-template-columns: 1fr; } .form-row { grid-template-columns: 1fr; } }
+        @media (max-width: 480px) { .logo h1 { font-size: 1.2rem; } .page-header h1 { font-size: 1.5rem; } .info-card, .goals-card { padding: 20px; } .goal-header { flex-direction: column; align-items: flex-start; } .btn-danger { width: 100%; justify-content: center; } }
+    </style>
+</head>
+<body>
+    <div class="offline-alert" id="offlineAlert"><i class="fas fa-wifi"></i> Интернет жоқ / Нет интернета</div>
+
+    <header class="header">
+        <div class="container">
+            <div class="logo"><i class="fas fa-apple-alt"></i><h1 id="siteTitle">Menu & Calories</h1></div>
+            <div class="burger-icon" id="burgerIcon" onclick="toggleMenu()"><span></span><span></span><span></span></div>
+        </div>
+    </header>
+
+    <div class="menu-overlay" id="menuOverlay" onclick="closeMenu()"></div>
+    <div class="menu-panel" id="menuPanel">
+        <div class="menu-panel-header"><h3><i class="fas fa-bars"></i> <span id="menuTitle">Меню</span></h3><div class="close-menu" onclick="closeMenu()"><i class="fas fa-times"></i></div></div>
+        <ul class="menu-list">
+            <li><a href="../index.html"><i class="fas fa-home"></i> <span id="homeText">Басты бет</span></a></li>
+            <li><a href="about.html"><i class="fas fa-info-circle"></i> <span id="aboutText">Біз туралы</span></a></li>
+            <li><a href="blog.html"><i class="fas fa-blog"></i> <span id="blogText">Блог</span></a></li>
+            <li><a href="contact.html"><i class="fas fa-address-book"></i> <span id="contactText">Байланыс</span></a></li>
+            <li><a href="menu.html"><i class="fas fa-utensils"></i> <span id="menuText">Мәзір</span></a></li>
+            <li><a href="calories.html"><i class="fas fa-fire"></i> <span id="caloriesText">Калория</span></a></li>
+            <li><a href="dashboard.html"><i class="fas fa-chart-line"></i> <span id="dashboardText">Бақылау</span></a></li>
+            <li><a href="profile.html" class="active"><i class="fas fa-user"></i> <span id="profileText">Профиль</span></a></li>
+            <li><a href="login.html"><i class="fas fa-sign-in-alt"></i> <span id="loginText">Кіру</span></a></li>
+            <li><a href="register.html"><i class="fas fa-user-plus"></i> <span id="registerText">Тіркелу</span></a></li>
+        </ul>
+        <div class="menu-section"><h4><i class="fas fa-globe"></i> <span id="languageText">Тіл</span></h4>
+            <div class="language-buttons">
+                <button class="lang-menu-btn" onclick="switchLanguage('kk')" data-lang="kk">KZ</button>
+                <button class="lang-menu-btn" onclick="switchLanguage('ru')" data-lang="ru">RU</button>
+                <button class="lang-menu-btn" onclick="switchLanguage('en')" data-lang="en">EN</button>
+            </div>
+        </div>
+        <div class="menu-section"><h4><i class="fas fa-palette"></i> <span id="themeText">Тема</span></h4>
+            <button class="theme-menu-btn" onclick="toggleTheme()" id="themeMenuBtn"><i class="fas fa-moon"></i> <span id="darkModeText">Қараңғы режим</span></button>
+        </div>
+    </div>
+
+    <section class="page-header">
+        <div class="container">
+            <div class="profile-avatar">
+                <div class="avatar-img" id="avatarIcon" onclick="toggleColorPalette()"><i class="fas fa-user"></i></div>
+                <div class="change-avatar" onclick="toggleColorPalette()"><i class="fas fa-palette"></i></div>
+                <div class="color-palette" id="colorPalette">
+                    <div class="color-option" style="background: #6366f1;" onclick="changeAvatarColor('#6366f1')"></div>
+                    <div class="color-option" style="background: #8b5cf6;" onclick="changeAvatarColor('#8b5cf6')"></div>
+                    <div class="color-option" style="background: #10b981;" onclick="changeAvatarColor('#10b981')"></div>
+                    <div class="color-option" style="background: #f97316;" onclick="changeAvatarColor('#f97316')"></div>
+                    <div class="color-option" style="background: #ef4444;" onclick="changeAvatarColor('#ef4444')"></div>
+                    <div class="color-option" style="background: #3b82f6;" onclick="changeAvatarColor('#3b82f6')"></div>
+                    <div class="color-option" style="background: #ec4899;" onclick="changeAvatarColor('#ec4899')"></div>
+                    <div class="color-option" style="background: #14b8a6;" onclick="changeAvatarColor('#14b8a6')"></div>
+                </div>
+            </div>
+            <div class="profile-title">
+                <h1><span id="profileName">Сеймұхан Салтанат</span> <span style="font-size: 1rem; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 50px;">⭐ PRO</span></h1>
+                <p><i class="fas fa-envelope"></i> <span id="profileEmail">sms_006@email.kz</span></p>
+                <p><i class="fas fa-calendar"></i> <span id="registeredLabel">Тіркелген</span>: <span id="profileDate">10 Қаңтар 2026</span></p>
+            </div>
+        </div>
+    </section>
+
+    <section class="profile-section">
+        <div class="container">
+            <div id="successMessage" class="success-message"><i class="fas fa-check-circle"></i> <span id="successText">Өзгерістер сақталды!</span></div>
+            
+            <div class="profile-grid">
+                <div>
+                    <div class="info-card">
+                        <h2><i class="fas fa-user-circle"></i> <span id="personalInfoTitle">Жеке ақпарат</span></h2>
+                        <div class="info-grid">
+                            <div class="info-item"><div class="info-label"><i class="fas fa-user"></i> <span id="fullnameLabel">Аты-жөні</span></div><div class="info-value" id="displayName">Сеймұхан Салтанат</div></div>
+                            <div class="info-item"><div class="info-label"><i class="fas fa-envelope"></i> <span id="emailLabel">Email</span></div><div class="info-value" id="displayEmail">sms_006@email.kz</div></div>
+                            <div class="info-item"><div class="info-label"><i class="fas fa-venus-mars"></i> <span id="genderLabel">Жынысы</span></div><div class="info-value" id="displayGender">Әйел</div></div>
+                            <div class="info-item"><div class="info-label"><i class="fas fa-birthday-cake"></i> <span id="ageLabel">Жасы</span></div><div class="info-value" id="displayAge">18 жас</div></div>
+                        </div>
+                        
+                        <form id="healthForm">
+                            <div class="form-row">
+                                <div class="form-group"><label><i class="fas fa-arrows-alt-v"></i> <span id="heightLabel">Бой (см)</span></label><input type="number" id="height" class="form-control" min="100" max="250" required></div>
+                                <div class="form-group"><label><i class="fas fa-weight-scale"></i> <span id="weightLabel">Салмақ (кг)</span></label><input type="number" id="weight" class="form-control" min="30" max="200" step="0.1" required></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group"><label><i class="fas fa-bullseye"></i> <span id="targetWeightLabel">Мақсатты салмақ (кг)</span></label><input type="number" id="targetWeight" class="form-control" min="30" max="200" step="0.1" required></div>
+                                <div class="form-group"><label><i class="fas fa-flag-checkered"></i> <span id="goalLabel">Мақсат</span></label>
+                                    <select id="goal" class="form-control">
+                                        <option value="lose" id="goalLose">🔥 Салмақ азайту</option>
+                                        <option value="maintain" id="goalMaintain">⚖️ Салмақты сақтау</option>
+                                        <option value="gain" id="goalGain">💪 Салмақ қосу</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-save"><i class="fas fa-save"></i> <span id="saveBtnText">Сақтау</span></button>
+                        </form>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="goals-card">
+                        <h2><i class="fas fa-bullseye"></i> <span id="myGoalsTitle">Мақсаттарым</span></h2>
+                        <div id="goalsContainer">
+                            <div class="goal-item"><div class="goal-header"><strong><i class="fas fa-weight-scale"></i> <span id="weightGoalText">Салмақ мақсаты</span></strong><span id="goalWeightText">68.5 кг → 58.0 кг</span></div><div class="goal-progress"><div id="weightProgress" class="goal-progress-fill" style="width: 60%;"></div></div><div class="goal-text" id="goalProgressText">60% орындалды</div></div>
+                            <div class="goal-item"><div class="goal-header"><strong><i class="fas fa-shoe-prints"></i> <span id="dailyStepsText">Күнделікті қадам</span></strong><span>7,500 / 10,000</span></div><div class="goal-progress"><div class="goal-progress-fill" style="width: 75%;"></div></div><div class="goal-text">75% орындалды</div></div>
+                            <div class="goal-item"><div class="goal-header"><strong><i class="fas fa-tint"></i> <span id="dailyWaterText">Су ішу</span></strong><span>1.8 / 2.0 л</span></div><div class="goal-progress"><div class="goal-progress-fill" style="width: 90%;"></div></div><div class="goal-text">90% орындалды</div></div>
+                        </div>
+                    </div>
+                    
+                    <div class="danger-zone">
+                        <h3><i class="fas fa-exclamation-triangle"></i> <span id="dangerZoneTitle">Қауіпті аймақ</span></h3>
+                        <p id="dangerZoneText">Бұл әрекеттерді қайтару мүмкін емес</p>
+                        <button class="btn-danger" id="deleteAccountBtn"><i class="fas fa-trash"></i> <span id="deleteAccountText">Аккаунтты жою</span></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="about.html" id="footerAboutText">Біз туралы</a>
+                <a href="blog.html" id="footerBlogText">Блог</a>
+                <a href="contact.html" id="footerContactText">Байланыс</a>
+                <a href="menu.html" id="footerMenuText">Мәзір</a>
+                <a href="calories.html" id="footerCaloriesText">Калория</a>
+                <a href="dashboard.html" id="footerDashboardText">Бақылау</a>
+                <a href="profile.html" id="footerProfileText">Профиль</a>
+                <a href="login.html" id="footerLoginText">Кіру</a>
+                <a href="register.html" id="footerRegisterText">Тіркелу</a>
+            </div>
+            <p>© 2026 Menu & Calories. <span id="copyrightText">Барлық құқықтар қорғалған.</span></p>
+        </div>
+    </footer>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============ ТІЛДЕР (полная версия) ============
+        const translations = {
+            kk: {
+                'siteTitle': 'Menu & Calories', 'homeText': 'Басты бет', 'aboutText': 'Біз туралы',
+                'blogText': 'Блог', 'contactText': 'Байланыс', 'menuText': 'Мәзір', 'caloriesText': 'Калория',
+                'dashboardText': 'Бақылау', 'profileText': 'Профиль', 'loginText': 'Кіру', 'registerText': 'Тіркелу',
+                'menuTitle': 'Меню', 'languageText': 'Тіл', 'themeText': 'Тема', 'darkModeText': 'Қараңғы режим',
+                'registeredLabel': 'Тіркелген', 'personalInfoTitle': 'Жеке ақпарат', 'fullnameLabel': 'Аты-жөні',
+                'emailLabel': 'Email', 'genderLabel': 'Жынысы', 'ageLabel': 'Жасы',
+                'heightLabel': 'Бой (см)', 'weightLabel': 'Салмақ (кг)', 'targetWeightLabel': 'Мақсатты салмақ (кг)',
+                'goalLabel': 'Мақсат', 'saveBtnText': 'Сақтау', 'myGoalsTitle': 'Мақсаттарым',
+                'weightGoalText': 'Салмақ мақсаты', 'dailyStepsText': 'Күнделікті қадам', 'dailyWaterText': 'Су ішу',
+                'dangerZoneTitle': 'Қауіпті аймақ', 'dangerZoneText': 'Бұл әрекеттерді қайтару мүмкін емес',
+                'deleteAccountText': 'Аккаунтты жою', 'copyrightText': 'Барлық құқықтар қорғалған.',
+                'footerAboutText': 'Біз туралы', 'footerBlogText': 'Блог', 'footerContactText': 'Байланыс',
+                'footerMenuText': 'Мәзір', 'footerCaloriesText': 'Калория', 'footerDashboardText': 'Бақылау',
+                'footerProfileText': 'Профиль', 'footerLoginText': 'Кіру', 'footerRegisterText': 'Тіркелу',
+                'successText': 'Өзгерістер сақталды!', 'avatarChanged': 'Аватар түсі өзгертілді!',
+                'accountDeleted': 'Аккаунт жойылды', 
+                'deleteConfirm': 'Сіз шынымен аккаунтыңызды жойғыңыз келе ме? Бұл әрекетті қайтару мүмкін емес.',
+                'goalLose': '🔥 Салмақ азайту', 'goalMaintain': '⚖️ Салмақты сақтау', 'goalGain': '💪 Салмақ қосу',
+                'female': 'Әйел', 'male': 'Ер',
+                'months': ['Қаңтар', 'Ақпан', 'Наурыз', 'Сәуір', 'Мамыр', 'Маусым', 'Шілде', 'Тамыз', 'Қыркүйек', 'Қазан', 'Қараша', 'Желтоқсан'],
+                'weightGoalPrefix': 'Салмақ мақсаты'
+            },
+            ru: {
+                'siteTitle': 'Menu & Calories', 'homeText': 'Главная', 'aboutText': 'О нас',
+                'blogText': 'Блог', 'contactText': 'Контакты', 'menuText': 'Меню', 'caloriesText': 'Калории',
+                'dashboardText': 'Панель', 'profileText': 'Профиль', 'loginText': 'Вход', 'registerText': 'Регистрация',
+                'menuTitle': 'Меню', 'languageText': 'Язык', 'themeText': 'Тема', 'darkModeText': 'Темный режим',
+                'registeredLabel': 'Зарегистрирован', 'personalInfoTitle': 'Личная информация',
+                'fullnameLabel': 'Полное имя', 'emailLabel': 'Email', 'genderLabel': 'Пол', 'ageLabel': 'Возраст',
+                'heightLabel': 'Рост (см)', 'weightLabel': 'Вес (кг)', 'targetWeightLabel': 'Целевой вес (кг)',
+                'goalLabel': 'Цель', 'saveBtnText': 'Сохранить', 'myGoalsTitle': 'Мои цели',
+                'weightGoalText': 'Цель по весу', 'dailyStepsText': 'Ежедневные шаги', 'dailyWaterText': 'Питье воды',
+                'dangerZoneTitle': 'Опасная зона', 'dangerZoneText': 'Эти действия невозможно отменить',
+                'deleteAccountText': 'Удалить аккаунт', 'copyrightText': 'Все права защищены.',
+                'footerAboutText': 'О нас', 'footerBlogText': 'Блог', 'footerContactText': 'Контакты',
+                'footerMenuText': 'Меню', 'footerCaloriesText': 'Калории', 'footerDashboardText': 'Панель',
+                'footerProfileText': 'Профиль', 'footerLoginText': 'Вход', 'footerRegisterText': 'Регистрация',
+                'successText': 'Изменения сохранены!', 'avatarChanged': 'Цвет аватара изменен!',
+                'accountDeleted': 'Аккаунт удален', 
+                'deleteConfirm': 'Вы действительно хотите удалить аккаунт? Это действие нельзя отменить.',
+                'goalLose': '🔥 Похудеть', 'goalMaintain': '⚖️ Поддерживать вес', 'goalGain': '💪 Набрать вес',
+                'female': 'Женщина', 'male': 'Мужчина',
+                'months': ['Января', 'Февраля', 'Марта', 'Апреля', 'Мая', 'Июня', 'Июля', 'Августа', 'Сентября', 'Октября', 'Ноября', 'Декабря'],
+                'weightGoalPrefix': 'Цель по весу'
+            },
+            en: {
+                'siteTitle': 'Menu & Calories', 'homeText': 'Home', 'aboutText': 'About',
+                'blogText': 'Blog', 'contactText': 'Contact', 'menuText': 'Menu', 'caloriesText': 'Calories',
+                'dashboardText': 'Dashboard', 'profileText': 'Profile', 'loginText': 'Login', 'registerText': 'Register',
+                'menuTitle': 'Menu', 'languageText': 'Language', 'themeText': 'Theme', 'darkModeText': 'Dark mode',
+                'registeredLabel': 'Registered', 'personalInfoTitle': 'Personal Info',
+                'fullnameLabel': 'Full name', 'emailLabel': 'Email', 'genderLabel': 'Gender', 'ageLabel': 'Age',
+                'heightLabel': 'Height (cm)', 'weightLabel': 'Weight (kg)', 'targetWeightLabel': 'Target weight (kg)',
+                'goalLabel': 'Goal', 'saveBtnText': 'Save', 'myGoalsTitle': 'My goals',
+                'weightGoalText': 'Weight goal', 'dailyStepsText': 'Daily steps', 'dailyWaterText': 'Water intake',
+                'dangerZoneTitle': 'Danger zone', 'dangerZoneText': 'These actions cannot be undone',
+                'deleteAccountText': 'Delete account', 'copyrightText': 'All rights reserved.',
+                'footerAboutText': 'About', 'footerBlogText': 'Blog', 'footerContactText': 'Contact',
+                'footerMenuText': 'Menu', 'footerCaloriesText': 'Calories', 'footerDashboardText': 'Dashboard',
+                'footerProfileText': 'Profile', 'footerLoginText': 'Login', 'footerRegisterText': 'Register',
+                'successText': 'Changes saved!', 'avatarChanged': 'Avatar color changed!',
+                'accountDeleted': 'Account deleted', 
+                'deleteConfirm': 'Are you sure you want to delete your account? This action cannot be undone.',
+                'goalLose': '🔥 Lose weight', 'goalMaintain': '⚖️ Maintain weight', 'goalGain': '💪 Gain weight',
+                'female': 'Female', 'male': 'Male',
+                'months': ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+                'weightGoalPrefix': 'Weight goal'
+            }
+        };
+
+        let currentLang = localStorage.getItem('preferred-language') || 'kk';
+        const STORAGE_KEYS = { USER_DATA: 'menuCalories_userData', HEALTH_DATA: 'menuCalories_healthData', SETTINGS: 'menuCalories_settings', IS_LOGGED_IN: 'menuCalories_isLoggedIn' };
+
+        function t(key) { return translations[currentLang][key] || key; }
+
+        function updateAllTexts() {
+            const elements = ['siteTitle', 'menuTitle', 'homeText', 'aboutText', 'blogText', 'contactText', 
+                'menuText', 'caloriesText', 'dashboardText', 'profileText', 'loginText', 'registerText',
+                'languageText', 'themeText', 'darkModeText', 'registeredLabel', 'personalInfoTitle',
+                'fullnameLabel', 'emailLabel', 'genderLabel', 'ageLabel', 'heightLabel', 'weightLabel',
+                'targetWeightLabel', 'goalLabel', 'saveBtnText', 'myGoalsTitle', 'weightGoalText',
+                'dailyStepsText', 'dailyWaterText', 'dangerZoneTitle', 'dangerZoneText', 'deleteAccountText',
+                'copyrightText', 'footerAboutText', 'footerBlogText', 'footerContactText', 'footerMenuText',
+                'footerCaloriesText', 'footerDashboardText', 'footerProfileText', 'footerLoginText', 'footerRegisterText',
+                'successText'];
+            elements.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = t(id); });
+            
+            // Обновляем option в select
+            const goalLose = document.getElementById('goalLose');
+            if (goalLose) goalLose.textContent = t('goalLose');
+            const goalMaintain = document.getElementById('goalMaintain');
+            if (goalMaintain) goalMaintain.textContent = t('goalMaintain');
+            const goalGain = document.getElementById('goalGain');
+            if (goalGain) goalGain.textContent = t('goalGain');
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            try {
+                const date = new Date(dateStr);
+                if (isNaN(date.getTime())) return dateStr;
+                const day = date.getDate();
+                const month = translations[currentLang]['months'][date.getMonth()];
+                const year = date.getFullYear();
+                return `${day} ${month} ${year}`;
+            } catch(e) { return dateStr; }
+        }
+
+        function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
+        function checkInternet() { const alert = document.getElementById('offlineAlert'); if (!navigator.onLine) alert.classList.add('show'); else alert.classList.remove('show'); }
+        function toggleMenu() { document.getElementById('menuPanel').classList.toggle('active'); document.getElementById('menuOverlay').classList.toggle('active'); document.getElementById('burgerIcon').classList.toggle('active'); document.body.style.overflow = document.body.style.overflow === 'hidden' ? 'auto' : 'hidden'; }
+        function closeMenu() { document.getElementById('menuPanel').classList.remove('active'); document.getElementById('menuOverlay').classList.remove('active'); document.getElementById('burgerIcon').classList.remove('active'); document.body.style.overflow = 'auto'; }
+        
+        function switchLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('preferred-language', lang);
+            document.documentElement.lang = lang;
+            document.querySelectorAll('.lang-menu-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-lang') === lang) btn.classList.add('active');
+            });
+            updateAllTexts();
+            // Обновляем дату на новом языке
+            const userData = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER_DATA)) || {};
+            if (userData.registerDate) {
+                document.getElementById('profileDate').textContent = formatDate(userData.registerDate);
+            }
+            // Обновляем отображение пола и цели
+            const healthData = JSON.parse(localStorage.getItem(STORAGE_KEYS.HEALTH_DATA)) || {};
+            const genderText = healthData.gender === 'female' ? t('female') : t('male');
+            document.getElementById('displayGender').textContent = genderText;
+            showToast(t('languageText') + ' ' + lang.toUpperCase());
+        }
+        
+        function toggleTheme() {
+            const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('preferred-theme', newTheme);
+            document.documentElement.setAttribute('data-theme', newTheme);
+            const icon = document.getElementById('themeMenuBtn').querySelector('i');
+            icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            showToast(newTheme === 'dark' ? '🌙 Қараңғы режим' : '☀️ Жарық режим');
+        }
+
+        function checkAuth() { if (localStorage.getItem(STORAGE_KEYS.IS_LOGGED_IN) !== 'true') { window.location.href = 'login.html'; return false; } return true; }
+
+        function loadProfileData() {
+            const userData = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER_DATA)) || { fullname: 'Сеймұхан Салтанат', email: 'sms_006@email.kz', registerDate: new Date().toLocaleDateString() };
+            const healthData = JSON.parse(localStorage.getItem(STORAGE_KEYS.HEALTH_DATA)) || { age: '18', gender: 'female', height: '168', weight: '65.5', targetWeight: '58', goal: 'lose' };
+            document.getElementById('profileName').textContent = userData.fullname;
+            document.getElementById('profileEmail').textContent = userData.email;
+            document.getElementById('profileDate').textContent = formatDate(userData.registerDate);
+            document.getElementById('displayName').textContent = userData.fullname;
+            document.getElementById('displayEmail').textContent = userData.email;
+            const genderText = healthData.gender === 'female' ? t('female') : t('male');
+            document.getElementById('displayGender').textContent = genderText;
+            document.getElementById('displayAge').textContent = (healthData.age || '18') + ' жас';
+            document.getElementById('height').value = healthData.height || '168';
+            document.getElementById('weight').value = healthData.weight || '65.5';
+            document.getElementById('targetWeight').value = healthData.targetWeight || '58';
+            document.getElementById('goal').value = healthData.goal || 'lose';
+            updateGoalsDisplay(healthData);
+        }
+
+        function updateGoalsDisplay(healthData) {
+            const currentWeight = parseFloat(healthData.weight) || 65.5;
+            const targetWeight = parseFloat(healthData.targetWeight) || 58;
+            const startWeight = parseFloat(healthData.startWeight) || (currentWeight + 3.5);
+            
+            if (!healthData.startWeight || healthData.startWeight < currentWeight) {
+                healthData.startWeight = startWeight;
+                localStorage.setItem(STORAGE_KEYS.HEALTH_DATA, JSON.stringify(healthData));
+            }
+            
+            document.getElementById('goalWeightText').textContent = `${startWeight.toFixed(1)} кг → ${targetWeight.toFixed(1)} кг`;
+            
+            let progressPercent = 0;
+            if (startWeight > targetWeight) {
+                const totalLoss = startWeight - targetWeight;
+                const currentLoss = startWeight - currentWeight;
+                progressPercent = Math.min(100, Math.max(0, (currentLoss / totalLoss) * 100));
+            } else if (startWeight < targetWeight) {
+                const totalGain = targetWeight - startWeight;
+                const currentGain = currentWeight - startWeight;
+                progressPercent = Math.min(100, Math.max(0, (currentGain / totalGain) * 100));
+            } else {
+                progressPercent = 100;
+            }
+            
+            document.getElementById('weightProgress').style.width = `${progressPercent}%`;
+            document.getElementById('goalProgressText').textContent = `${Math.round(progressPercent)}% орындалды`;
+        }
+
+        function calculateDailyCalories(healthData) {
+            const weight = parseFloat(healthData.weight) || 65.5;
+            const height = parseFloat(healthData.height) || 168;
+            const age = parseFloat(healthData.age) || 28;
+            const gender = healthData.gender || 'female';
+            let bmr = gender === 'female' ? 10*weight + 6.25*height - 5*age - 161 : 10*weight + 6.25*height - 5*age + 5;
+            let dailyCalories = Math.round(bmr * 1.375);
+            if (healthData.goal === 'lose') dailyCalories -= 500;
+            else if (healthData.goal === 'gain') dailyCalories += 300;
+            localStorage.setItem('menuCalories_calorieData', JSON.stringify({ limit: dailyCalories, consumed: 0, remaining: dailyCalories, burned: 0, date: new Date().toISOString() }));
+        }
+
+        let currentAvatarColor = localStorage.getItem('avatarColor') || 'linear-gradient(135deg, #6366f1, #8b5cf6)';
+        function changeAvatarColor(color) {
+            document.getElementById('avatarIcon').style.background = color;
+            localStorage.setItem('avatarColor', color);
+            document.getElementById('colorPalette').classList.remove('show');
+            showToast(t('avatarChanged'));
+        }
+        function toggleColorPalette() { document.getElementById('colorPalette').classList.toggle('show'); }
+        document.addEventListener('click', function(e) { if (!e.target.closest('.profile-avatar')) { document.getElementById('colorPalette').classList.remove('show'); } });
+
+        document.getElementById('healthForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const healthData = JSON.parse(localStorage.getItem(STORAGE_KEYS.HEALTH_DATA)) || {};
+            const oldWeight = parseFloat(healthData.weight) || 65.5;
+            const newWeight = parseFloat(document.getElementById('weight').value);
+            
+            healthData.height = document.getElementById('height').value;
+            healthData.weight = document.getElementById('weight').value;
+            healthData.targetWeight = document.getElementById('targetWeight').value;
+            healthData.goal = document.getElementById('goal').value;
+            
+            // Если вес изменился, обновляем startWeight для корректного расчета прогресса
+            if (Math.abs(newWeight - oldWeight) > 0.1 && !healthData.startWeight) {
+                healthData.startWeight = oldWeight;
+            }
+            
+            localStorage.setItem(STORAGE_KEYS.HEALTH_DATA, JSON.stringify(healthData));
+            updateGoalsDisplay(healthData);
+            calculateDailyCalories(healthData);
+            document.getElementById('successMessage').classList.add('show');
+            setTimeout(() => document.getElementById('successMessage').classList.remove('show'), 3000);
+            showToast(t('successText'));
+        });
+
+        document.getElementById('deleteAccountBtn').addEventListener('click', function() {
+            if (confirm(t('deleteConfirm'))) {
+                localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+                localStorage.removeItem(STORAGE_KEYS.HEALTH_DATA);
+                localStorage.removeItem(STORAGE_KEYS.SETTINGS);
+                localStorage.removeItem('menuCalories_calorieData');
+                localStorage.removeItem('menuCalories_todayFoods');
+                localStorage.setItem(STORAGE_KEYS.IS_LOGGED_IN, 'false');
+                showToast(t('accountDeleted'));
+                setTimeout(() => window.location.href = '../index.html', 1500);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!checkAuth()) return;
+            currentLang = localStorage.getItem('preferred-language') || 'kk';
+            const savedTheme = localStorage.getItem('preferred-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            if (savedTheme === 'dark') document.getElementById('themeMenuBtn').querySelector('i').className = 'fas fa-sun';
+            switchLanguage(currentLang);
+            if (localStorage.getItem('avatarColor')) document.getElementById('avatarIcon').style.background = localStorage.getItem('avatarColor');
+            loadProfileData();
+            window.addEventListener('load', checkInternet);
+            window.addEventListener('online', checkInternet);
+            window.addEventListener('offline', checkInternet);
+            document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Бақылау панелі - Menu & Calories</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MenuCal">
+    <meta name="theme-color" content="#6366f1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --card-bg: #ffffff;
+            --card-shadow: 0 20px 40px -15px rgba(0,0,0,0.1);
+            --header-bg: linear-gradient(135deg, #6366f1, #8b5cf6);
+            --header-text: #ffffff;
+            --footer-bg: #0f172a;
+            --footer-text: #f8fafc;
+            --button-primary: #6366f1;
+            --button-primary-hover: #4f46e5;
+            --button-success: #10b981;
+            --button-success-hover: #059669;
+            --button-warning: #f97316;
+            --button-danger: #ef4444;
+            --input-bg: #ffffff;
+            --input-border: #e2e8f0;
+            --modal-bg: #ffffff;
+            --shadow-color: rgba(99,102,241,0.1);
+            --error-color: #ef4444;
+            --success-color: #10b981;
+            --transition: all 0.3s ease;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --card-bg: #1e293b;
+            --card-shadow: 0 20px 40px -15px rgba(0,0,0,0.5);
+            --header-bg: linear-gradient(135deg, #4f46e5, #7c3aed);
+            --header-text: #ffffff;
+            --footer-bg: #020617;
+            --footer-text: #f8fafc;
+            --button-primary: #818cf8;
+            --button-primary-hover: #6366f1;
+            --button-success: #34d399;
+            --button-success-hover: #10b981;
+            --button-warning: #fb923c;
+            --button-danger: #f87171;
+            --input-bg: #334155;
+            --input-border: #475569;
+            --modal-bg: #1e293b;
+            --error-color: #f87171;
+            --success-color: #34d399;
+        }
+
+        body { font-family: 'Inter', sans-serif; color: var(--text-primary); background-color: var(--bg-primary); transition: var(--transition); }
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+        .offline-alert { display: none; background: var(--error-color); color: white; text-align: center; padding: 10px; position: fixed; top: 0; left: 0; right: 0; z-index: 9999; font-size: 14px; }
+        .offline-alert.show { display: block; }
+
+        .header { background: var(--header-bg); color: var(--header-text); padding: 16px 0; position: sticky; top: 0; z-index: 100; }
+        .header .container { display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; gap: 12px; }
+        .logo i { font-size: 2rem; animation: float 3s ease-in-out infinite; }
+        .logo h1 { font-size: 1.8rem; font-weight: 700; background: linear-gradient(to right, #fff, #e0e7ff); background-clip: text; color: transparent; }
+
+        .burger-icon {
+            width: 48px; height: 48px; background: rgba(255,255,255,0.15); border-radius: 16px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px;
+            cursor: pointer; transition: var(--transition); border: 1px solid rgba(255,255,255,0.2);
+        }
+        .burger-icon:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
+        .burger-icon span { width: 24px; height: 2px; background: white; border-radius: 2px; transition: var(--transition); }
+        .burger-icon.active span:nth-child(1) { transform: rotate(45deg) translate(6px,6px); width: 28px; }
+        .burger-icon.active span:nth-child(2) { opacity: 0; transform: translateX(-10px); }
+        .burger-icon.active span:nth-child(3) { transform: rotate(-45deg) translate(6px,-6px); width: 28px; }
+
+        .menu-panel {
+            position: fixed; top: 0; right: -420px; width: 380px; height: 100vh;
+            background: var(--modal-bg); box-shadow: -10px 0 40px var(--shadow-color);
+            z-index: 1000; transition: right 0.5s ease; overflow-y: auto;
+            padding: 28px; border-left: 1px solid var(--border-color);
+        }
+        .menu-panel.active { right: 0; }
+        .menu-panel-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 2px solid var(--border-color); margin-bottom: 24px; }
+        .menu-panel-header h3 { color: var(--text-primary); font-size: 1.6rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .close-menu { width: 42px; height: 42px; background: var(--bg-secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); color: var(--text-primary); font-size: 1.2rem; }
+        .close-menu:hover { background: var(--error-color); color: white; transform: rotate(180deg); }
+        .menu-list { list-style: none; margin-bottom: 28px; }
+        .menu-list li { margin-bottom: 8px; }
+        .menu-list li a { display: flex; align-items: center; gap: 16px; padding: 14px 20px; color: var(--text-primary); text-decoration: none; border-radius: 16px; transition: var(--transition); font-weight: 500; }
+        .menu-list li a i { width: 24px; color: var(--button-primary); font-size: 1.2rem; }
+        .menu-list li a:hover { background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.1)); transform: translateX(8px); }
+        .menu-list li a.active { background: linear-gradient(135deg, var(--button-primary), var(--button-primary-hover)); color: white; }
+        .menu-list li a.active i { color: white; }
+        .menu-section { margin-bottom: 28px; padding: 0 4px; }
+        .menu-section h4 { color: var(--text-secondary); margin-bottom: 16px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+        .language-buttons { display: flex; gap: 12px; }
+        .lang-menu-btn { flex: 1; padding: 12px; border: 2px solid var(--button-primary); background: transparent; color: var(--text-primary); border-radius: 12px; cursor: pointer; font-weight: 600; transition: var(--transition); font-size: 1rem; }
+        .lang-menu-btn:hover { background: rgba(99,102,241,0.1); transform: translateY(-3px); }
+        .lang-menu-btn.active { background: var(--button-primary); color: white; border-color: var(--button-primary); }
+        .theme-menu-btn { width: 100%; padding: 14px; border: none; background: linear-gradient(135deg, var(--button-primary), var(--button-primary-hover)); color: white; border-radius: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: var(--transition); font-weight: 600; }
+        .theme-menu-btn:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(99,102,241,0.4); }
+        .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; display: none; }
+        .menu-overlay.active { display: block; animation: fadeIn 0.3s ease; }
+
+        .page-header { background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; padding: 40px 0; border-radius: 0 0 40px 40px; margin-bottom: 40px; }
+        .page-header .container { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+        .welcome-section h1 { font-size: 2.2rem; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .welcome-section p { opacity: 0.95; font-size: 1.1rem; }
+        .date-badge { background: rgba(255,255,255,0.15); padding: 12px 24px; border-radius: 50px; display: flex; align-items: center; gap: 10px; font-size: 1.1rem; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.2); }
+
+        .calorie-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 40px; }
+        .calorie-card { background: var(--card-bg); padding: 20px 16px; border-radius: 20px; box-shadow: var(--card-shadow); border: 1px solid var(--border-color); transition: var(--transition); text-align: center; position: relative; overflow: hidden; }
+        .calorie-card:hover { transform: translateY(-5px); }
+        .calorie-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+        .calorie-card.limit::before { background: linear-gradient(90deg, #6366f1, #8b5cf6); }
+        .calorie-card.consumed::before { background: linear-gradient(90deg, #f97316, #ea580c); }
+        .calorie-card.remaining::before { background: linear-gradient(90deg, #10b981, #059669); }
+        .calorie-card.burned::before { background: linear-gradient(90deg, #ef4444, #dc2626); }
+        .calorie-header { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; color: var(--text-secondary); font-size: 0.95rem; }
+        .calorie-header i { font-size: 1.3rem; }
+        .calorie-value { font-size: 2.2rem; font-weight: 700; color: var(--text-primary); line-height: 1.2; margin-bottom: 5px; }
+        .calorie-label { color: var(--text-muted); font-size: 0.8rem; }
+
+        .quick-actions { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 50px; }
+        .action-btn { background: var(--card-bg); padding: 20px 12px; border-radius: 20px; box-shadow: var(--card-shadow); border: 1px solid var(--border-color); transition: var(--transition); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--text-primary); text-decoration: none; width: 100%; font-size: 0.9rem; }
+        .action-btn:hover { transform: translateY(-5px); border-color: var(--button-primary); }
+        .action-btn i { font-size: 2rem; }
+        .action-btn span { font-weight: 600; }
+        .action-btn small { color: var(--text-muted); font-size: 0.75rem; }
+
+        .meal-section { margin-bottom: 50px; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .section-header h2 { font-size: 1.8rem; display: flex; align-items: center; gap: 10px; color: var(--text-primary); }
+        .total-calories-badge { background: var(--button-primary); color: white; padding: 8px 20px; border-radius: 40px; font-weight: 600; font-size: 1rem; }
+        .meal-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .meal-card { background: var(--card-bg); border-radius: 24px; box-shadow: var(--card-shadow); border: 1px solid var(--border-color); overflow: hidden; transition: var(--transition); display: flex; flex-direction: column; }
+        .meal-card:hover { transform: translateY(-5px); border-color: var(--button-primary); }
+        .meal-header { background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.1)); padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); }
+        .meal-header h3 { font-size: 1.1rem; display: flex; align-items: center; gap: 6px; color: var(--text-primary); }
+        .meal-header h3 i { color: var(--button-primary); }
+        .meal-calories { font-weight: 700; color: var(--button-primary); font-size: 0.9rem; }
+        .meal-items { list-style: none; padding: 12px; min-height: 120px; max-height: 200px; overflow-y: auto; flex: 1; }
+        .meal-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: var(--bg-secondary); border-radius: 10px; margin-bottom: 6px; border-left: 3px solid var(--button-primary); font-size: 0.9rem; }
+        .meal-item span:first-child { font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px; }
+        .meal-item span:last-child { color: var(--button-warning); font-weight: 600; white-space: nowrap; }
+        .food-item-remove { color: var(--error-color); cursor: pointer; padding: 4px 8px; border-radius: 6px; }
+        .empty-message { text-align: center; color: var(--text-muted); padding: 15px; font-style: italic; background: var(--bg-secondary); border-radius: 10px; font-size: 0.9rem; }
+        .add-food-btn { width: calc(100% - 20px); margin: 10px; padding: 10px; background: var(--bg-secondary); border: 2px dashed var(--border-color); border-radius: 14px; color: var(--text-muted); cursor: pointer; transition: var(--transition); font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .add-food-btn:hover { border-color: var(--button-primary); color: var(--button-primary); }
+
+        .progress-section { background: var(--card-bg); padding: 40px; border-radius: 30px; box-shadow: var(--card-shadow); border: 1px solid var(--border-color); margin-bottom: 40px; }
+        .progress-section h2 { margin-bottom: 30px; display: flex; align-items: center; gap: 10px; color: var(--text-primary); }
+        .progress-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .progress-stat-item { text-align: center; }
+        .progress-stat-value { font-size: 2rem; font-weight: 700; color: var(--button-primary); }
+        .progress-stat-label { color: var(--text-muted); font-size: 0.9rem; }
+        .progress-bar-container { height: 16px; background: var(--bg-secondary); border-radius: 8px; margin: 20px 0; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--button-primary), var(--button-success)); border-radius: 8px; transition: width 0.5s ease; }
+        .progress-chart-container { margin-top: 30px; height: 200px; }
+
+        /* ============ ДОСТИЖЕНИЯ ============ */
+        .achievements-section {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 30px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            margin-bottom: 40px;
+        }
+        .achievements-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        .achievements-header h3 {
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-primary);
+        }
+        .achievements-count {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 15px;
+        }
+        .achievement-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+        .achievement-card.unlocked {
+            background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(5,150,105,0.05));
+            border-color: var(--button-success);
+        }
+        .achievement-icon {
+            width: 45px;
+            height: 45px;
+            background: var(--card-bg);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: var(--button-primary);
+        }
+        .achievement-card.unlocked .achievement-icon {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: white;
+        }
+        .achievement-info {
+            flex: 1;
+        }
+        .achievement-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: block;
+            color: var(--text-primary);
+        }
+        .achievement-desc {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+        .achievement-status i {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+        }
+        .achievement-card.unlocked .achievement-status i {
+            color: var(--button-success);
+        }
+
+        .footer { background: var(--footer-bg); color: var(--footer-text); padding: 40px 0; text-align: center; margin-top: 40px; }
+        .footer-links { display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; flex-wrap: wrap; }
+        .footer-links a { color: var(--footer-text); text-decoration: none; opacity: 0.8; transition: var(--transition); }
+        .footer-links a:hover { opacity: 1; color: var(--button-primary); }
+        .footer p { opacity: 0.8; }
+
+        .logout-section { display: flex; justify-content: center; margin-top: 30px; }
+        .logout-btn { background: var(--error-color); color: white; padding: 14px 32px; border-radius: 40px; border: none; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 1.1rem; font-weight: 600; transition: var(--transition); }
+        .logout-btn:hover { background: #dc2626; transform: translateY(-3px); }
+
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(120px); background: var(--modal-bg); color: var(--text-primary); padding: 14px 30px; border-radius: 60px; box-shadow: 0 15px 40px var(--shadow-color); z-index: 10000; opacity: 0; transition: all 0.5s; border-left: 4px solid var(--success-color); font-weight: 500; }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        @media (max-width: 1024px) { .calorie-summary { grid-template-columns: repeat(2, 1fr); } .quick-actions { grid-template-columns: repeat(2, 1fr); } .meal-cards { grid-template-columns: repeat(2, 1fr); } .achievements-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .menu-panel { width: 100%; right: -100%; } .page-header .container { flex-direction: column; align-items: flex-start; } .date-badge { width: 100%; justify-content: center; } .calorie-summary { grid-template-columns: repeat(2, 1fr); } .quick-actions { grid-template-columns: repeat(2, 1fr); } .meal-cards { grid-template-columns: 1fr; } .progress-stats { grid-template-columns: 1fr; } }
+        @media (max-width: 480px) { .logo h1 { font-size: 1.2rem; } .calorie-summary { grid-template-columns: 1fr; } .quick-actions { grid-template-columns: 1fr; } .action-btn { flex-direction: row; justify-content: flex-start; } .action-btn i { margin-right: 10px; } .action-btn small { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="offline-alert" id="offlineAlert"><i class="fas fa-wifi"></i> Интернет жоқ / Нет интернета</div>
+
+    <header class="header">
+        <div class="container">
+            <div class="logo"><i class="fas fa-apple-alt"></i><h1 id="siteTitle">Menu & Calories</h1></div>
+            <div class="burger-icon" id="burgerIcon" onclick="toggleMenu()"><span></span><span></span><span></span></div>
+        </div>
+    </header>
+
+    <div class="menu-overlay" id="menuOverlay" onclick="closeMenu()"></div>
+    <div class="menu-panel" id="menuPanel">
+        <div class="menu-panel-header"><h3><i class="fas fa-bars"></i> <span id="menuTitle">Меню</span></h3><div class="close-menu" onclick="closeMenu()"><i class="fas fa-times"></i></div></div>
+        <ul class="menu-list">
+            <li><a href="../index.html"><i class="fas fa-home"></i> <span id="homeText">Басты бет</span></a></li>
+            <li><a href="about.html"><i class="fas fa-info-circle"></i> <span id="aboutText">Біз туралы</span></a></li>
+            <li><a href="blog.html"><i class="fas fa-blog"></i> <span id="blogText">Блог</span></a></li>
+            <li><a href="contact.html"><i class="fas fa-address-book"></i> <span id="contactText">Байланыс</span></a></li>
+            <li><a href="menu.html"><i class="fas fa-utensils"></i> <span id="menuText">Мәзір</span></a></li>
+            <li><a href="calories.html"><i class="fas fa-fire"></i> <span id="caloriesText">Калория</span></a></li>
+            <li><a href="dashboard.html" class="active"><i class="fas fa-chart-line"></i> <span id="dashboardText">Бақылау</span></a></li>
+            <li><a href="profile.html"><i class="fas fa-user"></i> <span id="profileText">Профиль</span></a></li>
+            <li><a href="login.html"><i class="fas fa-sign-in-alt"></i> <span id="loginText">Кіру</span></a></li>
+            <li><a href="register.html"><i class="fas fa-user-plus"></i> <span id="registerText">Тіркелу</span></a></li>
+        </ul>
+        <div class="menu-section"><h4><i class="fas fa-globe"></i> <span id="languageText">Тіл</span></h4>
+            <div class="language-buttons">
+                <button class="lang-menu-btn" onclick="switchLanguage('kk')" data-lang="kk">KZ</button>
+                <button class="lang-menu-btn" onclick="switchLanguage('ru')" data-lang="ru">RU</button>
+                <button class="lang-menu-btn" onclick="switchLanguage('en')" data-lang="en">EN</button>
+            </div>
+        </div>
+        <div class="menu-section"><h4><i class="fas fa-palette"></i> <span id="themeText">Тема</span></h4>
+            <button class="theme-menu-btn" onclick="toggleTheme()" id="themeMenuBtn"><i class="fas fa-moon"></i> <span id="darkModeText">Қараңғы режим</span></button>
+        </div>
+    </div>
+
+    <section class="page-header">
+        <div class="container">
+            <div class="welcome-section">
+                <h1><i class="fas fa-tachometer-alt"></i> <span id="welcomeMessage">Қош келдіңіз!</span></h1>
+                <p><i class="fas fa-smile"></i> <span id="greetingMessage">Бүгінгі прогресті бақылаңыз</span></p>
+            </div>
+            <div class="date-badge">
+                <i class="fas fa-calendar-alt"></i>
+                <span id="currentDate"></span>
+            </div>
+        </div>
+    </section>
+
+    <section class="dashboard-section">
+        <div class="container">
+            <div class="calorie-summary">
+                <div class="calorie-card limit"><div class="calorie-header"><i class="fas fa-bullseye"></i><span id="dailyLimitLabel">Күндік лимит</span></div><div class="calorie-value" id="dailyLimit">2000</div><div class="calorie-label">ккал</div></div>
+                <div class="calorie-card consumed"><div class="calorie-header"><i class="fas fa-utensils"></i><span id="consumedLabel">Тұтынылған</span></div><div class="calorie-value" id="consumedCalories">0</div><div class="calorie-label">ккал</div></div>
+                <div class="calorie-card remaining"><div class="calorie-header"><i class="fas fa-hourglass-half"></i><span id="remainingLabel">Қалған</span></div><div class="calorie-value" id="remainingCalories">2000</div><div class="calorie-label">ккал</div></div>
+                <div class="calorie-card burned"><div class="calorie-header"><i class="fas fa-running"></i><span id="burnedLabel">Жанарған</span></div><div class="calorie-value" id="burnedCalories">0</div><div class="calorie-label">ккал</div></div>
+            </div>
+
+            <div class="quick-actions">
+                <button class="action-btn" onclick="window.location.href='menu.html'"><i class="fas fa-utensils" style="color: #10b981;"></i><span id="goToMenuText">Мәзірге өту</span><small id="addFoodText">Тағам қосу</small></button>
+                <button class="action-btn" onclick="showStatisticsModal()"><i class="fas fa-chart-line" style="color: #6366f1;"></i><span id="statisticsText">Статистика</span><small id="viewStatsText">Толық талдау</small></button>
+                <button class="action-btn" onclick="window.location.href='profile.html'"><i class="fas fa-user" style="color: #8b5cf6;"></i><span id="profileBtnText">Профиль</span><small id="editProfileText">Деректерді өзгерту</small></button>
+                <button class="action-btn" onclick="exportData()"><i class="fas fa-download" style="color: #3b82f6;"></i><span id="exportDataText">Деректерді сақтау</span><small id="exportCsvText">Экспорт CSV</small></button>
+                <button class="action-btn" onclick="refreshData()"><i class="fas fa-sync-alt" style="color: #f97316;"></i><span id="refreshText">Жаңарту</span><small id="updateDataText">Деректерді жаңарту</small></button>
+            </div>
+
+            <div class="meal-section">
+                <div class="section-header"><h2><i class="fas fa-utensils"></i> <span id="todayMealsText">Бүгінгі тағамдар</span></h2><span class="total-calories-badge" id="totalCaloriesBadge">0 ккал</span></div>
+                <div class="meal-cards">
+                    <div class="meal-card"><div class="meal-header"><h3><i class="fas fa-sun"></i> <span id="breakfastText">Таңғы ас</span></h3><span class="meal-calories" id="breakfastTotal">0 ккал</span></div><ul class="meal-items" id="breakfastItems"><li class="empty-message">Тағам қосылмаған</li></ul><button class="add-food-btn" onclick="window.location.href='menu.html?meal=breakfast'"><i class="fas fa-plus"></i> <span id="addFromMenuText">Мәзірден қосу</span></button></div>
+                    <div class="meal-card"><div class="meal-header"><h3><i class="fas fa-cloud-sun"></i> <span id="lunchText">Түскі ас</span></h3><span class="meal-calories" id="lunchTotal">0 ккал</span></div><ul class="meal-items" id="lunchItems"><li class="empty-message">Тағам қосылмаған</li></ul><button class="add-food-btn" onclick="window.location.href='menu.html?meal=lunch'"><i class="fas fa-plus"></i> <span id="addFromMenuText2">Мәзірден қосу</span></button></div>
+                    <div class="meal-card"><div class="meal-header"><h3><i class="fas fa-moon"></i> <span id="dinnerText">Кешкі ас</span></h3><span class="meal-calories" id="dinnerTotal">0 ккал</span></div><ul class="meal-items" id="dinnerItems"><li class="empty-message">Тағам қосылмаған</li></ul><button class="add-food-btn" onclick="window.location.href='menu.html?meal=dinner'"><i class="fas fa-plus"></i> <span id="addFromMenuText3">Мәзірден қосу</span></button></div>
+                    <div class="meal-card"><div class="meal-header"><h3><i class="fas fa-cookie-bite"></i> <span id="snackText">Қосымша ас</span></h3><span class="meal-calories" id="snackTotal">0 ккал</span></div><ul class="meal-items" id="snackItems"><li class="empty-message">Тағам қосылмаған</li></ul><button class="add-food-btn" onclick="window.location.href='menu.html?meal=snack'"><i class="fas fa-plus"></i> <span id="addFromMenuText4">Мәзірден қосу</span></button></div>
+                </div>
+            </div>
+
+            <div class="progress-section">
+                <h2><i class="fas fa-chart-line"></i> <span id="weeklyProgressText">Апталық прогресс</span></h2>
+                <div class="progress-stats">
+                    <div class="progress-stat-item"><div class="progress-stat-value" id="weeklyAverage">1850</div><div class="progress-stat-label" id="dailyAvgText">Орташа күндік</div></div>
+                    <div class="progress-stat-item"><div class="progress-stat-value" id="bestDay">0</div><div class="progress-stat-label" id="bestDayText">Үздік күн</div></div>
+                    <div class="progress-stat-item"><div class="progress-stat-value" id="totalWeek">0</div><div class="progress-stat-label" id="totalWeekText">Апталық жиын</div></div>
+                </div>
+                <div class="progress-bar-container"><div class="progress-fill" id="weeklyProgress" style="width: 0%;"></div></div>
+                <div class="progress-chart-container"><canvas id="weeklyChart"></canvas></div>
+            </div>
+
+            <!-- ДОСТИЖЕНИЯ (вместо графика веса) -->
+            <div class="achievements-section">
+                <div class="achievements-header">
+                    <h3><i class="fas fa-trophy"></i> <span id="achievementsTitle">Менің жетістіктерім</span></h3>
+                    <span class="achievements-count" id="achievementsCount">0/6</span>
+                </div>
+                <div class="achievements-grid" id="achievementsGrid">
+                    <div class="achievement-card" data-achievement="registered">
+                        <div class="achievement-icon"><i class="fas fa-user-check"></i></div>
+                        <div class="achievement-info">
+                            <span class="achievement-name" id="achRegName">Қош келдіңіз</span>
+                            <small class="achievement-desc" id="achRegDesc">Тіркелу</small>
+                        </div>
+                        <div class="achievement-status"><i class="fas fa-lock"></i></div>
+                    </div>
+                    <div class="achievement-card" data-achievement="firstMeal">
+                        <div class="achievement-icon"><i class="fas fa-utensils"></i></div>
+                        <div class="achievement-info">
+                            <span class="achievement-name" id="achFirstMealName">Бірінші тағам</span>
+                            <small class="achievement-desc" id="achFirstMealDesc">1 тағам қосу</small>
+                        </div>
+                        <div class="achievement-status"><i class="fas fa-lock"></i></div>
+                    </div>
+                    <div class="achievement-card" data-achievement="meal5">
+                        <div class="achievement-icon"><i class="fas fa-layer-group"></i></div>
+                        <div class="achievement-info">
+                            <span class="achievement-name" id="ach5MealName">Ашкөз</span>
+                            <small class="achievement-desc" id="ach5MealDesc">5 тағам қосу</small>
+                        </div>
+                        <div class="achievement-status"><i class="fas fa-lock"></i></div>
+                    </div>
+                    <div class="achievement-card" data-achievement="meal20">
+                        <div class="achievement-icon"><i class="fas fa-crown"></i></div>
+                        <div class="achievement-info">
+                            <span class="achievement-name" id="ach20MealName">Гурман</span>
+                            <small class="achievement-desc" id="ach20MealDesc">20 тағам қосу</small>
+                        </div>
+                        <div class="achievement-status"><i class="fas fa-lock"></i></div>
+                    </div>
+                    <div class="achievement-card" data-achievement="water2">
+                        <div class="achievement-icon"><i class="fas fa-tint"></i></div>
+                        <div class="achievement-info">
+                            <span class="achievement-name" id="achWater2Name">Су ішер</span>
+                            <small class="achievement-desc" id="achWater2Desc">2 литр су ішу</small>
+                        </div>
+                        <div class="achievement-status"><i class="fas fa-lock"></i></div>
+                    </div>
+                    <div class="achievement-card" data-achievement="week3">
+                        <div class="achievement-icon"><i class="fas fa-calendar-week"></i></div>
+                        <div class="achievement-info">
+                            <span class="achievement-name" id="achWeek3Name">Тәртіпті</span>
+                            <small class="achievement-desc" id="achWeek3Desc">3 күн қатар</small>
+                        </div>
+                        <div class="achievement-status"><i class="fas fa-lock"></i></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="logout-section">
+                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> <span id="logoutText">Жүйеден шығу</span></button>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="about.html" id="footerAboutText">Біз туралы</a>
+                <a href="blog.html" id="footerBlogText">Блог</a>
+                <a href="contact.html" id="footerContactText">Байланыс</a>
+                <a href="menu.html" id="footerMenuText">Мәзір</a>
+                <a href="calories.html" id="footerCaloriesText">Калория</a>
+                <a href="dashboard.html" id="footerDashboardText">Бақылау</a>
+                <a href="profile.html" id="footerProfileText">Профиль</a>
+                <a href="login.html" id="footerLoginText">Кіру</a>
+                <a href="register.html" id="footerRegisterText">Тіркелу</a>
+            </div>
+            <p>© 2026 Menu & Calories. <span id="copyrightText">Барлық құқықтар қорғалған.</span></p>
+        </div>
+    </footer>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============ ТІЛДЕР (толық аударма) ============
+        const translations = {
+            kk: {
+                'siteTitle': 'Menu & Calories', 'menuTitle': 'Меню', 'homeText': 'Басты бет',
+                'aboutText': 'Біз туралы', 'blogText': 'Блог', 'contactText': 'Байланыс',
+                'menuText': 'Мәзір', 'caloriesText': 'Калория', 'dashboardText': 'Бақылау',
+                'profileText': 'Профиль', 'loginText': 'Кіру', 'registerText': 'Тіркелу',
+                'languageText': 'Тіл', 'themeText': 'Тема', 'darkModeText': 'Қараңғы режим',
+                'dailyLimitLabel': 'Күндік лимит', 'consumedLabel': 'Тұтынылған', 'remainingLabel': 'Қалған', 'burnedLabel': 'Жанарған',
+                'goToMenuText': 'Мәзірге өту', 'addFoodText': 'Тағам қосу', 'statisticsText': 'Статистика',
+                'viewStatsText': 'Толық талдау', 'profileBtnText': 'Профиль', 'editProfileText': 'Деректерді өзгерту',
+                'exportDataText': 'Деректерді сақтау', 'exportCsvText': 'Экспорт CSV', 'refreshText': 'Жаңарту',
+                'updateDataText': 'Деректерді жаңарту', 'todayMealsText': 'Бүгінгі тағамдар',
+                'breakfastText': 'Таңғы ас', 'lunchText': 'Түскі ас', 'dinnerText': 'Кешкі ас', 'snackText': 'Қосымша ас',
+                'addFromMenuText': 'Мәзірден қосу', 'addFromMenuText2': 'Мәзірден қосу', 'addFromMenuText3': 'Мәзірден қосу', 'addFromMenuText4': 'Мәзірден қосу',
+                'weeklyProgressText': 'Апталық прогресс', 'dailyAvgText': 'Орташа күндік', 'bestDayText': 'Үздік күн', 'totalWeekText': 'Апталық жиын',
+                'logoutText': 'Жүйеден шығу', 'copyrightText': 'Барлық құқықтар қорғалған.',
+                'footerAboutText': 'Біз туралы', 'footerBlogText': 'Блог', 'footerContactText': 'Байланыс',
+                'footerMenuText': 'Мәзір', 'footerCaloriesText': 'Калория', 'footerDashboardText': 'Бақылау',
+                'footerProfileText': 'Профиль', 'footerLoginText': 'Кіру', 'footerRegisterText': 'Тіркелу',
+                'welcome': 'Қош келдіңіз', 'trackProgress': 'Бүгінгі прогресті бақылаңыз',
+                'good-morning': 'Қайырлы таң!', 'good-afternoon': 'Қайырлы күн!', 'good-evening': 'Қайырлы кеш!',
+                'data-saved': 'Деректер сақталды! 📁', 'data-refreshed': 'Деректер жаңартылды', 'food-deleted': 'Тағам өшірілді',
+                'goodbye': 'Сау болыңыз!',
+                'achievementsTitle': 'Менің жетістіктерім',
+                'achRegName': 'Қош келдіңіз', 'achRegDesc': 'Тіркелу',
+                'achFirstMealName': 'Бірінші тағам', 'achFirstMealDesc': '1 тағам қосу',
+                'ach5MealName': 'Ашкөз', 'ach5MealDesc': '5 тағам қосу',
+                'ach20MealName': 'Гурман', 'ach20MealDesc': '20 тағам қосу',
+                'achWater2Name': 'Су ішер', 'achWater2Desc': '2 литр су ішу',
+                'achWeek3Name': 'Тәртіпті', 'achWeek3Desc': '3 күн қатар',
+                'unlockToast': '🏆 Жетістік ашылды: "'
+            },
+            ru: {
+                'siteTitle': 'Menu & Calories', 'menuTitle': 'Меню', 'homeText': 'Главная',
+                'aboutText': 'О нас', 'blogText': 'Блог', 'contactText': 'Контакты',
+                'menuText': 'Меню', 'caloriesText': 'Калории', 'dashboardText': 'Панель',
+                'profileText': 'Профиль', 'loginText': 'Вход', 'registerText': 'Регистрация',
+                'languageText': 'Язык', 'themeText': 'Тема', 'darkModeText': 'Темный режим',
+                'dailyLimitLabel': 'Дневной лимит', 'consumedLabel': 'Потреблено', 'remainingLabel': 'Осталось', 'burnedLabel': 'Сожжено',
+                'goToMenuText': 'Перейти в меню', 'addFoodText': 'Добавить еду', 'statisticsText': 'Статистика',
+                'viewStatsText': 'Полный анализ', 'profileBtnText': 'Профиль', 'editProfileText': 'Изменить данные',
+                'exportDataText': 'Сохранить данные', 'exportCsvText': 'Экспорт CSV', 'refreshText': 'Обновить',
+                'updateDataText': 'Обновить данные', 'todayMealsText': 'Сегодняшние приемы пищи',
+                'breakfastText': 'Завтрак', 'lunchText': 'Обед', 'dinnerText': 'Ужин', 'snackText': 'Перекус',
+                'addFromMenuText': 'Добавить из меню', 'addFromMenuText2': 'Добавить из меню', 'addFromMenuText3': 'Добавить из меню', 'addFromMenuText4': 'Добавить из меню',
+                'weeklyProgressText': 'Недельный прогресс', 'dailyAvgText': 'Средний день', 'bestDayText': 'Лучший день', 'totalWeekText': 'Недельная сумма',
+                'logoutText': 'Выйти', 'copyrightText': 'Все права защищены.',
+                'footerAboutText': 'О нас', 'footerBlogText': 'Блог', 'footerContactText': 'Контакты',
+                'footerMenuText': 'Меню', 'footerCaloriesText': 'Калории', 'footerDashboardText': 'Панель',
+                'footerProfileText': 'Профиль', 'footerLoginText': 'Вход', 'footerRegisterText': 'Регистрация',
+                'welcome': 'Добро пожаловать', 'trackProgress': 'Отслеживайте прогресс сегодня',
+                'good-morning': 'Доброе утро!', 'good-afternoon': 'Добрый день!', 'good-evening': 'Добрый вечер!',
+                'data-saved': 'Данные сохранены! 📁', 'data-refreshed': 'Данные обновлены', 'food-deleted': 'Блюдо удалено',
+                'goodbye': 'До свидания!',
+                'achievementsTitle': 'Мои достижения',
+                'achRegName': 'Добро пожаловать', 'achRegDesc': 'Регистрация',
+                'achFirstMealName': 'Первое блюдо', 'achFirstMealDesc': 'Добавить 1 блюдо',
+                'ach5MealName': 'Гурман', 'ach5MealDesc': 'Добавить 5 блюд',
+                'ach20MealName': 'Знаток', 'ach20MealDesc': 'Добавить 20 блюд',
+                'achWater2Name': 'Водохлёб', 'achWater2Desc': 'Выпить 2 литра воды',
+                'achWeek3Name': 'Дисциплинированный', 'achWeek3Desc': '3 дня подряд',
+                'unlockToast': '🏆 Достижение открыто: "'
+            },
+            en: {
+                'siteTitle': 'Menu & Calories', 'menuTitle': 'Menu', 'homeText': 'Home',
+                'aboutText': 'About', 'blogText': 'Blog', 'contactText': 'Contact',
+                'menuText': 'Menu', 'caloriesText': 'Calories', 'dashboardText': 'Dashboard',
+                'profileText': 'Profile', 'loginText': 'Login', 'registerText': 'Register',
+                'languageText': 'Language', 'themeText': 'Theme', 'darkModeText': 'Dark mode',
+                'dailyLimitLabel': 'Daily limit', 'consumedLabel': 'Consumed', 'remainingLabel': 'Remaining', 'burnedLabel': 'Burned',
+                'goToMenuText': 'Go to menu', 'addFoodText': 'Add food', 'statisticsText': 'Statistics',
+                'viewStatsText': 'Full analysis', 'profileBtnText': 'Profile', 'editProfileText': 'Edit profile',
+                'exportDataText': 'Save data', 'exportCsvText': 'Export CSV', 'refreshText': 'Refresh',
+                'updateDataText': 'Update data', 'todayMealsText': 'Today\'s meals',
+                'breakfastText': 'Breakfast', 'lunchText': 'Lunch', 'dinnerText': 'Dinner', 'snackText': 'Snack',
+                'addFromMenuText': 'Add from menu', 'addFromMenuText2': 'Add from menu', 'addFromMenuText3': 'Add from menu', 'addFromMenuText4': 'Add from menu',
+                'weeklyProgressText': 'Weekly progress', 'dailyAvgText': 'Daily average', 'bestDayText': 'Best day', 'totalWeekText': 'Weekly total',
+                'logoutText': 'Logout', 'copyrightText': 'All rights reserved.',
+                'footerAboutText': 'About', 'footerBlogText': 'Blog', 'footerContactText': 'Contact',
+                'footerMenuText': 'Menu', 'footerCaloriesText': 'Calories', 'footerDashboardText': 'Dashboard',
+                'footerProfileText': 'Profile', 'footerLoginText': 'Login', 'footerRegisterText': 'Register',
+                'welcome': 'Welcome', 'trackProgress': 'Track today\'s progress',
+                'good-morning': 'Good morning!', 'good-afternoon': 'Good afternoon!', 'good-evening': 'Good evening!',
+                'data-saved': 'Data saved! 📁', 'data-refreshed': 'Data refreshed', 'food-deleted': 'Food deleted',
+                'goodbye': 'Goodbye!',
+                'achievementsTitle': 'My achievements',
+                'achRegName': 'Welcome', 'achRegDesc': 'Registration',
+                'achFirstMealName': 'First meal', 'achFirstMealDesc': 'Add 1 meal',
+                'ach5MealName': 'Food lover', 'ach5MealDesc': 'Add 5 meals',
+                'ach20MealName': 'Gourmet', 'ach20MealDesc': 'Add 20 meals',
+                'achWater2Name': 'Water drinker', 'achWater2Desc': 'Drink 2L water',
+                'achWeek3Name': 'Disciplined', 'achWeek3Desc': '3 days in a row',
+                'unlockToast': '🏆 Achievement unlocked: "'
+            }
+        };
+
+        let currentLang = localStorage.getItem('preferred-language') || 'kk';
+        const STORAGE_KEYS = { USER_DATA: 'menuCalories_userData', HEALTH_DATA: 'menuCalories_healthData', TODAY_FOODS: 'menuCalories_todayFoods', IS_LOGGED_IN: 'menuCalories_isLoggedIn', ACHIEVEMENTS: 'menuCalories_achievements' };
+        let weeklyChart = null, weeklyData = [];
+        
+        // Достижения
+        let achievements = { registered: false, firstMeal: false, meal5: false, meal20: false, water2: false, week3: false };
+        let consecutiveDays = 0;
+
+        function t(key) { return translations[currentLang][key] || key; }
+
+        function updateAllTexts() {
+            const elements = ['siteTitle', 'menuTitle', 'homeText', 'aboutText', 'blogText', 'contactText', 'menuText', 
+                'caloriesText', 'dashboardText', 'profileText', 'loginText', 'registerText', 'languageText', 'themeText', 'darkModeText',
+                'dailyLimitLabel', 'consumedLabel', 'remainingLabel', 'burnedLabel', 'goToMenuText', 'addFoodText', 'statisticsText',
+                'viewStatsText', 'profileBtnText', 'editProfileText', 'exportDataText', 'exportCsvText', 'refreshText', 'updateDataText',
+                'todayMealsText', 'breakfastText', 'lunchText', 'dinnerText', 'snackText', 'addFromMenuText', 'addFromMenuText2', 'addFromMenuText3', 'addFromMenuText4',
+                'weeklyProgressText', 'dailyAvgText', 'bestDayText', 'totalWeekText', 'logoutText', 'copyrightText',
+                'footerAboutText', 'footerBlogText', 'footerContactText', 'footerMenuText', 'footerCaloriesText', 'footerDashboardText',
+                'footerProfileText', 'footerLoginText', 'footerRegisterText', 'trackProgress', 'achievementsTitle',
+                'achRegName', 'achRegDesc', 'achFirstMealName', 'achFirstMealDesc', 'ach5MealName', 'ach5MealDesc',
+                'ach20MealName', 'ach20MealDesc', 'achWater2Name', 'achWater2Desc', 'achWeek3Name', 'achWeek3Desc'];
+            elements.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = t(id); });
+        }
+
+        function showToast(msg) { const toast = document.getElementById('toast'); toast.textContent = msg; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000); }
+        function toggleMenu() { document.getElementById('menuPanel').classList.toggle('active'); document.getElementById('menuOverlay').classList.toggle('active'); document.getElementById('burgerIcon').classList.toggle('active'); document.body.style.overflow = document.body.style.overflow === 'hidden' ? 'auto' : 'hidden'; }
+        function closeMenu() { document.getElementById('menuPanel').classList.remove('active'); document.getElementById('menuOverlay').classList.remove('active'); document.getElementById('burgerIcon').classList.remove('active'); document.body.style.overflow = 'auto'; }
+        function checkInternet() { const alert = document.getElementById('offlineAlert'); if (!navigator.onLine) alert.classList.add('show'); else alert.classList.remove('show'); }
+
+        function switchLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('preferred-language', lang);
+            document.documentElement.lang = lang;
+            document.querySelectorAll('.lang-menu-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-lang') === lang) btn.classList.add('active');
+            });
+            updateAllTexts();
+            updateGreeting();
+            loadUserData();
+            showToast(t('languageText') + ' ' + lang.toUpperCase());
+        }
+
+        function toggleTheme() {
+            const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('preferred-theme', newTheme);
+            document.documentElement.setAttribute('data-theme', newTheme);
+            const icon = document.getElementById('themeMenuBtn').querySelector('i');
+            icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            showToast(newTheme === 'dark' ? '🌙 Қараңғы режим' : '☀️ Жарық режим');
+        }
+
+        function updateGreeting() {
+            const hours = new Date().getHours();
+            let greeting = '';
+            if (hours < 12) greeting = t('good-morning');
+            else if (hours < 18) greeting = t('good-afternoon');
+            else greeting = t('good-evening');
+            document.getElementById('greetingMessage').textContent = greeting;
+        }
+
+        function checkAuth() { if (localStorage.getItem(STORAGE_KEYS.IS_LOGGED_IN) !== 'true') { window.location.href = 'login.html'; return false; } return true; }
+
+        function loadUserData() {
+            const userData = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER_DATA));
+            const healthData = JSON.parse(localStorage.getItem(STORAGE_KEYS.HEALTH_DATA));
+            const firstName = (userData && userData.fullname) ? userData.fullname.split(' ')[0] : '';
+            document.getElementById('welcomeMessage').textContent = firstName ? `${t('welcome')}, ${firstName}!` : t('welcome') + '!';
+            if (healthData) { const dailyLimit = calculateDailyLimit(healthData); document.getElementById('dailyLimit').textContent = dailyLimit; document.getElementById('remainingCalories').textContent = dailyLimit; }
+        }
+
+        function calculateDailyLimit(healthData) {
+            const weight = parseFloat(healthData.weight) || 65, height = parseFloat(healthData.height) || 165, age = parseFloat(healthData.age) || 28;
+            const gender = healthData.gender || 'female', goal = healthData.goal || 'maintain';
+            let bmr = gender === 'female' ? 10*weight + 6.25*height - 5*age - 161 : 10*weight + 6.25*height - 5*age + 5;
+            let calories = Math.round(bmr * 1.375);
+            if (goal === 'lose') calories -= 500;
+            else if (goal === 'gain') calories += 300;
+            return Math.max(1200, calories);
+        }
+
+        function updateDate() { document.getElementById('currentDate').textContent = new Date().toLocaleDateString('kk-KZ', { year: 'numeric', month: 'long', day: 'numeric' }); updateGreeting(); }
+
+        // ============ БЛЮДА ============
+        function loadTodayFoods() {
+            const saved = localStorage.getItem(STORAGE_KEYS.TODAY_FOODS);
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    if (data.date === new Date().toDateString()) {
+                        displayAllMeals(data.foods);
+                        updateCalorieStats(data.foods);
+                        updateWeeklyData();
+                        return;
+                    }
+                } catch(e) {}
+            }
+            clearAllMeals();
+            initializeWeeklyData();
+        }
+
+        function displayAllMeals(foods) {
+            displayMeal('breakfast', foods.breakfast || []);
+            displayMeal('lunch', foods.lunch || []);
+            displayMeal('dinner', foods.dinner || []);
+            displayMeal('snack', foods.snack || []);
+        }
+
+        function displayMeal(mealType, items) {
+            const container = document.getElementById(mealType + 'Items');
+            const totalElement = document.getElementById(mealType + 'Total');
+            if (!container) return;
+            if (items.length === 0) {
+                container.innerHTML = '<li class="empty-message">' + (mealType === 'breakfast' ? 'Таңғы ас қосылмаған' : mealType === 'lunch' ? 'Түскі ас қосылмаған' : mealType === 'dinner' ? 'Кешкі ас қосылмаған' : 'Қосымша ас қосылмаған') + '</li>';
+                if (totalElement) totalElement.textContent = '0 ккал';
+                return;
+            }
+            let html = '', total = 0;
+            items.forEach((item, index) => {
+                total += item.calories;
+                html += `<li class="meal-item"><span>${item.name}</span><span>${item.calories} ккал</span><span class="food-item-remove" onclick="removeFood('${mealType}', ${index})"><i class="fas fa-trash"></i></span></li>`;
+            });
+            container.innerHTML = html;
+            if (totalElement) totalElement.textContent = total + ' ккал';
+            updateTotalCaloriesBadge();
+        }
+
+        function updateTotalCaloriesBadge() {
+            const totals = ['breakfast', 'lunch', 'dinner', 'snack'].map(meal => { const el = document.getElementById(meal + 'Total'); return el ? parseInt(el.textContent) || 0 : 0; });
+            document.getElementById('totalCaloriesBadge').textContent = totals.reduce((a,b) => a+b, 0) + ' ккал';
+        }
+
+        window.removeFood = function(mealType, index) {
+            const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.TODAY_FOODS));
+            if (saved && saved.foods && saved.foods[mealType]) {
+                saved.foods[mealType].splice(index, 1);
+                localStorage.setItem(STORAGE_KEYS.TODAY_FOODS, JSON.stringify(saved));
+                displayMeal(mealType, saved.foods[mealType]);
+                updateCalorieStats(saved.foods);
+                updateWeeklyData();
+                showToast(t('food-deleted'));
+            }
+        };
+
+        function updateCalorieStats(foods) {
+            let total = 0;
+            ['breakfast', 'lunch', 'dinner', 'snack'].forEach(meal => { total += (foods[meal] || []).reduce((sum, item) => sum + (item.calories || 0), 0); });
+            document.getElementById('consumedCalories').textContent = total;
+            const dailyLimit = parseInt(document.getElementById('dailyLimit').textContent) || 2000;
+            const remaining = Math.max(0, dailyLimit - total);
+            document.getElementById('remainingCalories').textContent = remaining;
+            document.getElementById('weeklyProgress').style.width = Math.min(100, (total / dailyLimit) * 100) + '%';
+            const healthData = JSON.parse(localStorage.getItem(STORAGE_KEYS.HEALTH_DATA)) || {};
+            const activity = healthData.activity === 'high' ? 1.5 : healthData.activity === 'medium' ? 1.2 : 0.8;
+            document.getElementById('burnedCalories').textContent = Math.round(total * (activity || 0.8));
+        }
+
+        function clearAllMeals() {
+            ['breakfast', 'lunch', 'dinner', 'snack'].forEach(meal => {
+                const container = document.getElementById(meal + 'Items');
+                const totalEl = document.getElementById(meal + 'Total');
+                if (container) container.innerHTML = '<li class="empty-message">Тағам қосылмаған</li>';
+                if (totalEl) totalEl.textContent = '0 ккал';
+            });
+            document.getElementById('consumedCalories').textContent = '0';
+            document.getElementById('remainingCalories').textContent = document.getElementById('dailyLimit').textContent;
+            document.getElementById('weeklyProgress').style.width = '0%';
+            document.getElementById('burnedCalories').textContent = '0';
+            document.getElementById('totalCaloriesBadge').textContent = '0 ккал';
+        }
+
+        function updateWeeklyData() {
+            let weekData = [], total = 0, maxDay = 0;
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toDateString();
+                const saved = localStorage.getItem(STORAGE_KEYS.TODAY_FOODS);
+                let dayTotal = 0;
+                if (saved) {
+                    try {
+                        const data = JSON.parse(saved);
+                        if (data.date === dateStr) { dayTotal = Object.values(data.foods || {}).flat().reduce((sum, item) => sum + (item.calories || 0), 0); }
+                    } catch(e) {}
+                }
+                weekData.push(dayTotal);
+                total += dayTotal;
+                if (dayTotal > maxDay) maxDay = dayTotal;
+            }
+            weeklyData = weekData;
+            document.getElementById('weeklyAverage').textContent = Math.round(total / 7) || 1850;
+            document.getElementById('bestDay').textContent = maxDay;
+            document.getElementById('totalWeek').textContent = total;
+            updateWeeklyChart();
+        }
+
+        function updateWeeklyChart() {
+            const ctx = document.getElementById('weeklyChart').getContext('2d');
+            if (weeklyChart) weeklyChart.destroy();
+            weeklyChart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: ['Дс', 'Сс', 'Ср', 'Бс', 'Жм', 'Сб', 'Жс'], datasets: [{ label: t('consumedLabel'), data: weeklyData, backgroundColor: 'rgba(99,102,241,0.8)', borderRadius: 8 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        function initializeWeeklyData() { weeklyData = [0,0,0,0,0,0,0]; updateWeeklyChart(); }
+
+        // ============ ДОСТИЖЕНИЯ ============
+        function loadAchievements() {
+            const saved = localStorage.getItem(STORAGE_KEYS.ACHIEVEMENTS);
+            if (saved) achievements = JSON.parse(saved);
+            updateAchievementsDisplay();
+        }
+
+        function saveAchievements() {
+            localStorage.setItem(STORAGE_KEYS.ACHIEVEMENTS, JSON.stringify(achievements));
+        }
+
+        function checkAchievements() {
+            let changed = false;
+            
+            // Тіркелу
+            if (!achievements.registered && localStorage.getItem(STORAGE_KEYS.IS_LOGGED_IN) === 'true') {
+                achievements.registered = true;
+                changed = true;
+                showToast(t('unlockToast') + t('achRegName') + '"! 🎉');
+            }
+            
+            // Тағамдар саны
+            let totalMeals = 0;
+            const todayFoods = JSON.parse(localStorage.getItem(STORAGE_KEYS.TODAY_FOODS));
+            if (todayFoods && todayFoods.foods) {
+                totalMeals = Object.values(todayFoods.foods).flat().length;
+            }
+            // Также считаем за прошлые дни
+            for (let i = 1; i <= 7; i++) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const oldData = JSON.parse(localStorage.getItem(STORAGE_KEYS.TODAY_FOODS + '_' + date.toDateString()));
+                if (oldData && oldData.foods) totalMeals += Object.values(oldData.foods).flat().length;
+            }
+            
+            if (!achievements.firstMeal && totalMeals >= 1) {
+                achievements.firstMeal = true;
+                changed = true;
+                showToast(t('unlockToast') + t('achFirstMealName') + '"! 🎉');
+            }
+            if (!achievements.meal5 && totalMeals >= 5) {
+                achievements.meal5 = true;
+                changed = true;
+                showToast(t('unlockToast') + t('ach5MealName') + '"! 🎉');
+            }
+            if (!achievements.meal20 && totalMeals >= 20) {
+                achievements.meal20 = true;
+                changed = true;
+                showToast(t('unlockToast') + t('ach20MealName') + '"! 🎉');
+            }
+            
+            // Су
+            const waterData = JSON.parse(localStorage.getItem('menuCalories_waterData'));
+            if (!achievements.water2 && waterData && waterData.consumed >= 2000) {
+                achievements.water2 = true;
+                changed = true;
+                showToast(t('unlockToast') + t('achWater2Name') + '"! 🎉');
+            }
+            
+            if (changed) {
+                saveAchievements();
+                updateAchievementsDisplay();
+            }
+        }
+
+        function updateAchievementsDisplay() {
+            const cards = document.querySelectorAll('.achievement-card');
+            cards.forEach(card => {
+                const type = card.dataset.achievement;
+                if (achievements[type]) {
+                    card.classList.add('unlocked');
+                    const statusIcon = card.querySelector('.achievement-status i');
+                    if (statusIcon) statusIcon.className = 'fas fa-check-circle';
+                } else {
+                    card.classList.remove('unlocked');
+                    const statusIcon = card.querySelector('.achievement-status i');
+                    if (statusIcon) statusIcon.className = 'fas fa-lock';
+                }
+            });
+            const unlockedCount = Object.values(achievements).filter(v => v === true).length;
+            const totalCount = Object.keys(achievements).length;
+            document.getElementById('achievementsCount').textContent = `${unlockedCount}/${totalCount}`;
+        }
+
+        // ============ ЭКСПОРТ ============
+        window.exportData = function() {
+            const foods = JSON.parse(localStorage.getItem(STORAGE_KEYS.TODAY_FOODS)) || {};
+            let csv = "Күн,Ас түрі,Тағам,Калория\n";
+            if (foods.foods) { Object.entries(foods.foods).forEach(([meal, items]) => { items.forEach(item => { csv += `${foods.date},${meal},${item.name},${item.calories}\n`; }); }); }
+            const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `menu_calories_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+            showToast(t('data-saved'));
+        };
+
+        function showStatisticsModal() {
+            const total = document.getElementById('consumedCalories').textContent;
+            const remaining = document.getElementById('remainingCalories').textContent;
+            const avg = document.getElementById('weeklyAverage').textContent;
+            alert(`📊 ${t('statisticsText')}\n\n${t('consumedLabel')}: ${total} ккал\n${t('remainingLabel')}: ${remaining} ккал\n${t('dailyAvgText')}: ${avg} ккал`);
+        }
+
+        window.refreshData = function() { loadTodayFoods(); checkAchievements(); showToast(t('data-refreshed')); };
+        window.logout = function() { localStorage.setItem(STORAGE_KEYS.IS_LOGGED_IN, 'false'); showToast(t('goodbye')); setTimeout(() => { window.location.href = 'login.html'; }, 1000); };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!checkAuth()) return;
+            currentLang = localStorage.getItem('preferred-language') || 'kk';
+            const savedTheme = localStorage.getItem('preferred-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            if (savedTheme === 'dark') document.getElementById('themeMenuBtn').querySelector('i').className = 'fas fa-sun';
+            updateAllTexts();
+            loadUserData();
+            updateDate();
+            loadTodayFoods();
+            loadAchievements();
+            checkAchievements();
+            window.addEventListener('load', checkInternet);
+            window.addEventListener('online', checkInternet);
+            window.addEventListener('offline', checkInternet);
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
+            setInterval(loadTodayFoods, 30000);
+        });
+    </script>
+</body>
+</html>
