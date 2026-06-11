@@ -20,7 +20,7 @@
             --text-secondary: #334155;
             --border-color: #e2e8f0;
             --card-bg: #ffffff;
-            --card-shadow: 0 20px 40px -12px rgba(0,0,0,0.1);
+            --card-shadow: 0 20px 40px -15px rgba(0,0,0,0.1);
             --header-bg: linear-gradient(135deg, #6366f1, #8b5cf6);
             --header-text: #ffffff;
             --footer-bg: #0f172a;
@@ -30,9 +30,11 @@
             --button-success: #10b981;
             --button-success-hover: #059669;
             --button-orange: #f97316;
+            --button-orange-hover: #ea580c;
             --input-bg: #ffffff;
             --input-border: #e2e8f0;
             --modal-bg: #ffffff;
+            --shadow-color: rgba(99,102,241,0.1);
             --error-color: #ef4444;
             --success-color: #10b981;
             --transition: all 0.3s ease;
@@ -45,7 +47,7 @@
             --text-secondary: #cbd5e1;
             --border-color: #334155;
             --card-bg: #1e293b;
-            --card-shadow: 0 20px 40px -12px rgba(0,0,0,0.3);
+            --card-shadow: 0 20px 40px -15px rgba(0,0,0,0.5);
             --header-bg: linear-gradient(135deg, #4f46e5, #7c3aed);
             --header-text: #ffffff;
             --footer-bg: #020617;
@@ -55,462 +57,576 @@
             --button-success: #34d399;
             --button-success-hover: #10b981;
             --button-orange: #fb923c;
+            --button-orange-hover: #f97316;
             --input-bg: #334155;
             --input-border: #475569;
             --modal-bg: #1e293b;
+            --shadow-color: rgba(0,0,0,0.5);
             --error-color: #f87171;
             --success-color: #34d399;
         }
 
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-primary); color: var(--text-primary); transition: var(--transition); }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--bg-primary);
+            transition: var(--transition);
+        }
+
         .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 
-        .offline-alert { display: none; background: var(--error-color); color: white; text-align: center; padding: 8px; position: fixed; top: 0; left: 0; right: 0; z-index: 9999; font-size: 13px; }
+        .offline-alert { display: none; background: var(--error-color); color: white; text-align: center; padding: 10px; position: fixed; top: 0; left: 0; right: 0; z-index: 9999; font-size: 14px; }
         .offline-alert.show { display: block; }
 
-        .header { background: var(--header-bg); color: var(--header-text); padding: 14px 0; position: sticky; top: 0; z-index: 100; }
+        .header {
+            background: var(--header-bg);
+            color: var(--header-text);
+            padding: 16px 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
         .header .container { display: flex; justify-content: space-between; align-items: center; }
-        .logo { display: flex; align-items: center; gap: 10px; }
-        .logo i { font-size: 1.8rem; animation: float 3s ease-in-out infinite; }
-        .logo h1 { font-size: 1.5rem; font-weight: 700; background: linear-gradient(to right, #fff, #e0e7ff); background-clip: text; color: transparent; }
+        .logo { display: flex; align-items: center; gap: 12px; }
+        .logo i { font-size: 2rem; animation: float 3s ease-in-out infinite; }
+        .logo h1 { font-size: 1.8rem; font-weight: 700; background: linear-gradient(to right, #fff, #e0e7ff); background-clip: text; color: transparent; }
 
         .burger-icon {
-            width: 44px; height: 44px; background: rgba(255,255,255,0.15); border-radius: 14px;
-            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px;
-            cursor: pointer; transition: var(--transition);
+            width: 48px; height: 48px; background: rgba(255,255,255,0.15); border-radius: 16px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px;
+            cursor: pointer; transition: var(--transition); border: 1px solid rgba(255,255,255,0.2);
         }
-        .burger-icon:hover { background: rgba(255,255,255,0.25); transform: scale(1.02); }
-        .burger-icon span { width: 22px; height: 2px; background: white; border-radius: 2px; transition: var(--transition); }
-        .burger-icon.active span:nth-child(1) { transform: rotate(45deg) translate(6px,6px); width: 26px; }
-        .burger-icon.active span:nth-child(2) { opacity: 0; }
-        .burger-icon.active span:nth-child(3) { transform: rotate(-45deg) translate(6px,-6px); width: 26px; }
+        .burger-icon:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
+        .burger-icon span { width: 24px; height: 2px; background: white; border-radius: 2px; transition: var(--transition); }
+        .burger-icon.active span:nth-child(1) { transform: rotate(45deg) translate(6px,6px); width: 28px; }
+        .burger-icon.active span:nth-child(2) { opacity: 0; transform: translateX(-10px); }
+        .burger-icon.active span:nth-child(3) { transform: rotate(-45deg) translate(6px,-6px); width: 28px; }
 
         .menu-panel {
-            position: fixed; top: 0; right: -350px; width: 320px; height: 100vh;
-            background: var(--modal-bg); z-index: 1000; transition: right 0.3s ease;
-            overflow-y: auto; padding: 25px; border-left: 1px solid var(--border-color);
+            position: fixed; top: 0; right: -420px; width: 380px; height: 100vh;
+            background: var(--modal-bg); box-shadow: -10px 0 40px var(--shadow-color);
+            z-index: 1000; transition: right 0.5s ease; overflow-y: auto;
+            padding: 28px; border-left: 1px solid var(--border-color);
         }
         .menu-panel.active { right: 0; }
-        .menu-panel-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
-        .close-menu { width: 36px; height: 36px; background: var(--bg-secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .close-menu:hover { background: var(--error-color); color: white; }
-        .menu-list { list-style: none; }
+        .menu-panel-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 2px solid var(--border-color); margin-bottom: 24px; }
+        .menu-panel-header h3 { color: var(--text-primary); font-size: 1.6rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .close-menu { width: 42px; height: 42px; background: var(--bg-secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); color: var(--text-primary); font-size: 1.2rem; }
+        .close-menu:hover { background: var(--error-color); color: white; transform: rotate(180deg); }
+        .menu-list { list-style: none; margin-bottom: 28px; }
         .menu-list li { margin-bottom: 8px; }
-        .menu-list li a { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--text-primary); text-decoration: none; border-radius: 12px; transition: var(--transition); }
-        .menu-list li a:hover { background: rgba(99,102,241,0.1); }
-        .menu-list li a.active { background: var(--button-primary); color: white; }
-        .menu-section { margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color); }
-        .language-buttons { display: flex; gap: 10px; }
-        .lang-menu-btn { flex: 1; padding: 10px; border: 1px solid var(--border-color); background: transparent; border-radius: 10px; cursor: pointer; transition: var(--transition); }
-        .lang-menu-btn.active { background: var(--button-primary); color: white; border-color: var(--button-primary); }
-        .theme-menu-btn { width: 100%; padding: 12px; background: var(--button-primary); color: white; border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; display: none; }
-        .menu-overlay.active { display: block; }
+        .menu-list li a { display: flex; align-items: center; gap: 16px; padding: 14px 20px; color: var(--text-primary); text-decoration: none; border-radius: 16px; transition: var(--transition); font-weight: 500; }
+        .menu-list li a i { width: 24px; color: var(--button-primary); font-size: 1.2rem; }
+        .menu-list li a:hover { background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.1)); transform: translateX(8px); }
+        .menu-list li a.active { background: linear-gradient(135deg, var(--button-primary), var(--button-primary-hover)); color: white; }
+        .menu-list li a.active i { color: white; }
+        .menu-section { margin-bottom: 28px; padding: 0 4px; }
+        .menu-section h4 { color: var(--text-secondary); margin-bottom: 16px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+        .language-buttons { display: flex; gap: 12px; }
+        .lang-menu-btn { flex: 1; padding: 12px; border: 2px solid var(--button-primary); background: transparent; color: var(--text-primary); border-radius: 12px; cursor: pointer; font-weight: 600; transition: var(--transition); font-size: 1rem; }
+        .lang-menu-btn:hover { background: rgba(99,102,241,0.1); transform: translateY(-3px); }
+        .lang-menu-btn.active { background: var(--button-primary); color: white; }
+        .theme-menu-btn { width: 100%; padding: 14px; border: none; background: linear-gradient(135deg, var(--button-primary), var(--button-primary-hover)); color: white; border-radius: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: var(--transition); font-weight: 600; }
+        .theme-menu-btn:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(99,102,241,0.4); }
+        .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; display: none; }
+        .menu-overlay.active { display: block; animation: fadeIn 0.3s ease; }
 
-        .hero { background: linear-gradient(135deg, var(--button-orange), var(--button-orange-hover)); color: white; text-align: center; padding: 40px 0; }
-        .hero h2 { font-size: 2rem; margin-bottom: 8px; }
-        .hero p { font-size: 0.95rem; opacity: 0.9; }
+        .hero {
+            background: linear-gradient(135deg, var(--button-orange), var(--button-orange-hover));
+            color: white; text-align: center; padding: 60px 0; position: relative; overflow: hidden;
+        }
+        .hero::before { content: ''; position: absolute; top: -50%; right: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); }
+        .hero h2 { font-size: 2.8rem; margin-bottom: 16px; font-weight: 700; position: relative; animation: slideDown 0.8s ease; }
+        .hero p { font-size: 1.2rem; margin-bottom: 30px; opacity: 0.95; position: relative; animation: fadeIn 0.8s ease 0.2s both; }
 
-        .random-meal { background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 24px; padding: 20px; margin: 30px auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; }
-        .random-meal h3 { color: white; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
-        .random-meal button { background: white; color: #6366f1; border: none; padding: 10px 20px; border-radius: 40px; font-weight: 600; cursor: pointer; transition: var(--transition); }
-        .random-meal button:hover { transform: scale(1.02); }
+        .filter-bar {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 30px auto 20px;
+        }
+        .filter-btn, .sort-btn {
+            padding: 10px 20px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: var(--transition);
+            color: var(--text-primary);
+        }
+        .filter-btn.active, .filter-btn:hover, .sort-btn.active, .sort-btn:hover {
+            background: var(--button-primary);
+            border-color: var(--button-primary);
+            color: white;
+        }
 
-        .filter-bar { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 25px 0; }
-        .filter-chip { padding: 8px 18px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 40px; cursor: pointer; font-size: 0.85rem; transition: var(--transition); }
-        .filter-chip.active, .filter-chip:hover { background: var(--button-primary); border-color: var(--button-primary); color: white; }
+        .menu-counter {
+            text-align: center; margin: 20px auto; font-size: 1.2rem; color: var(--text-secondary);
+            background: var(--card-bg); padding: 20px; border-radius: 60px; box-shadow: var(--card-shadow);
+            max-width: 400px; border: 1px solid var(--border-color);
+        }
+        .menu-counter span { color: var(--button-primary); font-weight: bold; font-size: 1.5rem; background: var(--bg-secondary); padding: 5px 20px; border-radius: 40px; margin: 0 10px; }
 
-        .search-box { max-width: 500px; margin: 20px auto; }
-        .search-box input { width: 100%; padding: 12px 20px; border: 1.5px solid var(--border-color); border-radius: 40px; font-size: 0.9rem; background: var(--input-bg); color: var(--text-primary); }
-        .search-box input:focus { outline: none; border-color: var(--button-primary); }
+        .menu-search { max-width: 650px; margin: 30px auto; }
+        .search-box { display: flex; gap: 15px; }
+        .search-box input { flex: 1; padding: 18px 25px; border: 2px solid var(--input-border); border-radius: 60px; font-size: 1.1rem; background: var(--input-bg); color: var(--text-primary); }
+        .search-box input:focus { border-color: var(--button-primary); outline: none; }
+        .search-box button { padding: 18px 35px; background: linear-gradient(135deg, var(--button-primary), var(--button-primary-hover)); color: white; border: none; border-radius: 60px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 12px; }
 
-        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; margin-top: 30px; }
-        .menu-card { background: var(--card-bg); border-radius: 24px; overflow: hidden; box-shadow: var(--card-shadow); border: 1px solid var(--border-color); transition: var(--transition); position: relative; }
-        .menu-card:hover { transform: translateY(-5px); border-color: var(--button-primary); }
-        .menu-img { height: 180px; background-size: cover; background-position: center; position: relative; display: flex; align-items: center; justify-content: center; font-size: 4rem; background: var(--bg-secondary); }
-        .calorie-badge { position: absolute; top: 12px; right: 12px; background: linear-gradient(135deg, #f97316, #ea580c); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-        .favorite-btn { position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); font-size: 0.8rem; }
-        .favorite-btn i { font-size: 0.75rem; }
-        .favorite-btn.active { background: rgba(239,68,68,0.8); color: white; }
-        .favorite-btn.active i { color: white; }
-        .favorite-btn:hover { transform: scale(1.05); background: rgba(0,0,0,0.7); }
-        .menu-info { padding: 18px; }
-        .menu-info h3 { font-size: 1.1rem; margin-bottom: 6px; }
-        .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
-        .tag { background: var(--bg-secondary); padding: 3px 10px; border-radius: 20px; font-size: 0.65rem; color: var(--text-muted); }
-        .menu-details { display: flex; justify-content: space-between; margin: 12px 0; font-size: 0.85rem; color: var(--text-secondary); }
-        .btn-add { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--button-success), var(--button-success-hover)); color: white; border: none; border-radius: 16px; font-weight: 600; cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-add:hover { transform: translateY(-2px); }
-        .btn-add.added { background: #64748b; pointer-events: none; }
+        .menu-categories {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: var(--card-bg);
+            border-radius: 60px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+        }
+        .category-tab {
+            padding: 12px 24px;
+            background: var(--bg-secondary);
+            border: 2px solid transparent;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+        }
+        .category-tab:hover { transform: translateY(-2px); border-color: var(--button-primary); }
+        .category-tab.active { background: linear-gradient(135deg, var(--button-primary), var(--button-primary-hover)); color: white; }
+        .category-tab.active i { color: white; }
 
-        .footer { background: var(--footer-bg); color: var(--footer-text); padding: 30px 0; text-align: center; margin-top: 40px; }
-        .footer-links { display: flex; justify-content: center; gap: 25px; margin-bottom: 15px; flex-wrap: wrap; }
-        .footer-links a { color: var(--footer-text); text-decoration: none; opacity: 0.8; font-size: 0.8rem; }
+        .menu-category-section { margin-bottom: 60px; padding: 30px; background: var(--card-bg); border-radius: 40px; box-shadow: var(--card-shadow); border: 1px solid var(--border-color); }
+        .category-title { color: var(--text-primary); margin-bottom: 30px; padding-bottom: 15px; border-bottom: 3px solid var(--button-primary); display: flex; align-items: center; gap: 12px; font-size: 1.8rem; }
+        .category-title i { background: linear-gradient(135deg, var(--button-primary), var(--button-primary-hover)); color: white; padding: 12px; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; }
 
-        .toast { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%) translateY(120px); background: var(--modal-bg); padding: 10px 20px; border-radius: 50px; z-index: 10000; opacity: 0; transition: all 0.3s; border-left: 3px solid var(--success-color); }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
+        .menu-card {
+            background: var(--card-bg); border-radius: 28px; overflow: hidden; box-shadow: var(--card-shadow);
+            transition: var(--transition); position: relative; border: 1px solid var(--border-color);
+            display: flex; flex-direction: column;
+        }
+        .menu-card:hover { transform: translateY(-8px); box-shadow: 0 25px 50px var(--shadow-color); }
+        .menu-img { height: 200px; overflow: hidden; position: relative; background: var(--bg-secondary); display: flex; align-items: center; justify-content: center; font-size: 4rem; }
+        .menu-card:hover .menu-img { transform: none; }
+        .menu-info { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+        .menu-info h3 { color: var(--text-primary); margin-bottom: 10px; font-size: 1.2rem; }
+        .menu-info p { color: var(--text-secondary); margin-bottom: 15px; font-size: 0.85rem; }
+        .menu-details { display: flex; justify-content: space-between; margin-bottom: 15px; padding-top: 10px; border-top: 1px solid var(--border-color); }
+        .menu-details span { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; }
+        .calorie-badge { position: absolute; top: 15px; right: 15px; padding: 6px 14px; border-radius: 30px; font-size: 0.8rem; font-weight: 600; background: linear-gradient(135deg, #f97316, #ea580c); color: white; z-index: 2; }
+        .btn-add {
+            width: 100%; padding: 14px; background: linear-gradient(135deg, var(--button-success), var(--button-success-hover));
+            color: white; border: none; border-radius: 18px; cursor: pointer; font-weight: 600;
+            transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: auto;
+        }
+        .btn-add:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(16,185,129,0.3); }
+        .btn-add.added { background: linear-gradient(135deg, #64748b, #475569); pointer-events: none; }
+
+        .footer { background: var(--footer-bg); color: var(--footer-text); padding: 40px 0; text-align: center; margin-top: 40px; }
+        .footer p { opacity: 0.9; margin: 8px 0; }
+        .footer a { color: var(--button-primary); text-decoration: none; }
+
+        .toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(120px);
+            background: var(--modal-bg); color: var(--text-primary); padding: 12px 24px; border-radius: 60px;
+            box-shadow: 0 15px 40px var(--shadow-color); z-index: 10000; opacity: 0; transition: all 0.4s;
+            border-left: 4px solid var(--success-color); font-weight: 500;
+        }
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-        @media (max-width: 768px) { .menu-grid { grid-template-columns: 1fr; } .hero h2 { font-size: 1.6rem; } .random-meal { flex-direction: column; text-align: center; } }
+        @media (max-width: 768px) {
+            .menu-panel { width: 100%; right: -100%; }
+            .hero h2 { font-size: 2rem; }
+            .search-box { flex-direction: column; }
+            .search-box button { width: 100%; }
+            .menu-categories { overflow-x: auto; justify-content: flex-start; }
+            .menu-grid { grid-template-columns: 1fr; }
+            .category-title { font-size: 1.4rem; }
+        }
+        @media (max-width: 480px) {
+            .logo h1 { font-size: 1.2rem; }
+            .hero h2 { font-size: 1.6rem; }
+            .filter-bar { gap: 8px; }
+            .filter-btn, .sort-btn { padding: 6px 12px; font-size: 0.8rem; }
+        }
     </style>
 </head>
 <body>
-    <div class="offline-alert" id="offlineAlert"><i class="fas fa-wifi"></i> Интернет жоқ</div>
+    <div class="offline-alert" id="offlineAlert"><i class="fas fa-wifi"></i> Интернет жоқ / Нет интернета</div>
 
     <header class="header">
         <div class="container">
-            <div class="logo"><i class="fas fa-apple-alt"></i><h1 id="siteTitle">Menu & Calories</h1></div>
+            <div class="logo"><i class="fas fa-apple-alt"></i><h1 class="lang-text" data-key="site-title">Menu & Calories</h1></div>
             <div class="burger-icon" id="burgerIcon" onclick="toggleMenu()"><span></span><span></span><span></span></div>
         </div>
     </header>
 
     <div class="menu-overlay" id="menuOverlay" onclick="closeMenu()"></div>
     <div class="menu-panel" id="menuPanel">
-        <div class="menu-panel-header"><h3><i class="fas fa-bars"></i> <span id="menuTitle">Меню</span></h3><div class="close-menu" onclick="closeMenu()"><i class="fas fa-times"></i></div></div>
+        <div class="menu-panel-header"><h3><i class="fas fa-bars"></i> <span class="lang-text" data-key="menu-title">Меню</span></h3><div class="close-menu" onclick="closeMenu()"><i class="fas fa-times"></i></div></div>
         <ul class="menu-list">
-            <li><a href="../index.html"><i class="fas fa-home"></i> <span id="homeText">Басты бет</span></a></li>
-            <li><a href="login.html"><i class="fas fa-sign-in-alt"></i> <span id="loginText">Кіру</span></a></li>
-            <li><a href="register.html"><i class="fas fa-user-plus"></i> <span id="registerText">Тіркелу</span></a></li>
-            <li><a href="menu.html" class="active"><i class="fas fa-utensils"></i> <span id="menuText">Мәзір</span></a></li>
-            <li><a href="calories.html"><i class="fas fa-fire"></i> <span id="caloriesText">Калория</span></a></li>
-            <li><a href="dashboard.html"><i class="fas fa-chart-line"></i> <span id="dashboardText">Бақылау</span></a></li>
-            <li><a href="profile.html"><i class="fas fa-user"></i> <span id="profileText">Профиль</span></a></li>
+            <li><a href="../index.html"><i class="fas fa-home"></i> <span class="lang-text" data-key="home">Басты бет</span></a></li>
+            <li><a href="login.html"><i class="fas fa-sign-in-alt"></i> <span class="lang-text" data-key="login">Кіру</span></a></li>
+            <li><a href="register.html"><i class="fas fa-user-plus"></i> <span class="lang-text" data-key="register">Тіркелу</span></a></li>
+            <li><a href="menu.html" class="active"><i class="fas fa-utensils"></i> <span class="lang-text" data-key="menu">Мәзір</span></a></li>
+            <li><a href="calories.html"><i class="fas fa-fire"></i> <span class="lang-text" data-key="calories">Калория</span></a></li>
+            <li><a href="dashboard.html"><i class="fas fa-chart-line"></i> <span class="lang-text" data-key="dashboard">Бақылау</span></a></li>
+            <li><a href="profile.html"><i class="fas fa-user"></i> <span class="lang-text" data-key="profile">Профиль</span></a></li>
         </ul>
-        <div class="menu-section"><h4><i class="fas fa-globe"></i> <span id="languageText">Тіл</span></h4>
-            <div class="language-buttons">
-                <button class="lang-menu-btn" onclick="switchLanguage('kk')" data-lang="kk">KZ</button>
-                <button class="lang-menu-btn" onclick="switchLanguage('ru')" data-lang="ru">RU</button>
-                <button class="lang-menu-btn" onclick="switchLanguage('en')" data-lang="en">EN</button>
-            </div>
+        <div class="menu-section"><h4><i class="fas fa-globe"></i> <span class="lang-text" data-key="language">Тіл</span></h4>
+            <div class="language-buttons"><button class="lang-menu-btn" onclick="switchLanguage('kk')">KZ</button><button class="lang-menu-btn" onclick="switchLanguage('ru')">RU</button><button class="lang-menu-btn" onclick="switchLanguage('en')">EN</button></div>
         </div>
-        <div class="menu-section"><h4><i class="fas fa-palette"></i> <span id="themeText">Тема</span></h4>
-            <button class="theme-menu-btn" onclick="toggleTheme()" id="themeMenuBtn"><i class="fas fa-moon"></i> <span id="darkModeText">Қараңғы режим</span></button>
+        <div class="menu-section"><h4><i class="fas fa-palette"></i> <span class="lang-text" data-key="theme">Тема</span></h4>
+            <button class="theme-menu-btn" onclick="toggleTheme()" id="themeMenuBtn"><i class="fas fa-moon"></i> <span class="lang-text" data-key="dark-mode">Қараңғы режим</span></button>
         </div>
     </div>
 
     <section class="hero">
         <div class="container">
-            <h2><i class="fas fa-utensils"></i> <span id="heroTitle">Денсаулықты ас мәзірлері</span></h2>
-            <p id="heroSubtitle">50+ денсаулықты тағамдардан таңдау жасаңыз</p>
+            <h2><i class="fas fa-utensils"></i> <span class="lang-text" data-key="menu-hero">Денсаулықты ас мәзірлері</span></h2>
+            <p class="lang-text" data-key="menu-hero-text">60+ денсаулықты тағамдардан таңдау жасаңыз</p>
+            <div class="menu-counter"><span class="lang-text" data-key="total">Барлығы:</span> <span id="totalDishes">60</span> <span class="lang-text" data-key="dishes">тағам</span></div>
+            <div class="menu-search"><div class="search-box"><input type="text" id="searchInput" placeholder="Тағам атауын іздеу..."><button id="searchBtn"><i class="fas fa-search"></i> Іздеу</button></div></div>
         </div>
     </section>
 
-    <div class="container">
-        <div class="random-meal">
-            <h3><i class="fas fa-dice"></i> <span id="randomTitle">Бүгін не жеуге болады?</span></h3>
-            <button onclick="showRandomMeal()" id="randomBtn">🎲 Кездейсоқ тағам</button>
+    <section class="menu-section">
+        <div class="container">
+            <div class="menu-categories">
+                <div class="category-tab active" data-category="all"><i class="fas fa-th-large"></i> Барлығы <span id="allCount">60</span></div>
+                <div class="category-tab" data-category="breakfast"><i class="fas fa-sun"></i> Таңғы ас <span id="breakfastCount">10</span></div>
+                <div class="category-tab" data-category="lunch"><i class="fas fa-utensils"></i> Түскі ас <span id="lunchCount">12</span></div>
+                <div class="category-tab" data-category="dinner"><i class="fas fa-moon"></i> Кешкі ас <span id="dinnerCount">10</span></div>
+                <div class="category-tab" data-category="dessert"><i class="fas fa-ice-cream"></i> Тәттілер <span id="dessertCount">4</span></div>
+                <div class="category-tab" data-category="national"><i class="fas fa-crown"></i> Ұлттық тағамдар <span id="nationalCount">10</span></div>
+                <div class="category-tab" data-category="drinks"><i class="fas fa-mug-hot"></i> Сусындар <span id="drinksCount">4</span></div>
+            </div>
+
+            <div id="all-categories-container"></div>
         </div>
-
-        <div class="filter-bar">
-            <button class="filter-chip active" data-filter="all" id="filterAll">🍽️ Барлығы</button>
-            <button class="filter-chip" data-filter="low" id="filterLow">🥗 500 ккал-ден төмен</button>
-            <button class="filter-chip" data-filter="medium" id="filterMedium">🍲 500-700 ккал</button>
-            <button class="filter-chip" data-filter="high" id="filterHigh">🍖 700 ккал-ден жоғары</button>
-            <button class="filter-chip" data-filter="favorites" id="filterFavorites">⭐ Таңдаулылар</button>
-        </div>
-
-        <div class="search-box"><input type="text" id="searchInput" placeholder="🔍 Тағам іздеу..."></div>
-
-        <div id="menuGrid" class="menu-grid"></div>
-    </div>
+    </section>
 
     <footer class="footer">
-        <div class="container">
-            <div class="footer-links">
-                <a href="about.html" id="footerAboutText">Біз туралы</a>
-                <a href="blog.html" id="footerBlogText">Блог</a>
-                <a href="contact.html" id="footerContactText">Байланыс</a>
-                <a href="menu.html" id="footerMenuText">Мәзір</a>
-                <a href="calories.html" id="footerCaloriesText">Калория</a>
-                <a href="dashboard.html" id="footerDashboardText">Бақылау</a>
-                <a href="profile.html" id="footerProfileText">Профиль</a>
-                <a href="login.html" id="footerLoginText">Кіру</a>
-                <a href="register.html" id="footerRegisterText">Тіркелу</a>
-            </div>
-            <p>© 2026 Menu & Calories. <span id="copyrightText">Барлық құқықтар қорғалған.</span></p>
-        </div>
+        <div class="container"><p>&copy; 2026 Menu & Calories. Барлық құқықтар қорғалған.</p></div>
     </footer>
-
     <div class="toast" id="toast"></div>
 
     <script>
-        // ============ ТІЛДЕР (толық аударма включая названия блюд) ============
+        // ============ ТІЛДЕР ============
         const translations = {
-            kk: {
-                'siteTitle': 'Menu & Calories', 'menuTitle': 'Меню', 'homeText': 'Басты бет',
-                'loginText': 'Кіру', 'registerText': 'Тіркелу', 'menuText': 'Мәзір',
-                'caloriesText': 'Калория', 'dashboardText': 'Бақылау', 'profileText': 'Профиль',
-                'languageText': 'Тіл', 'themeText': 'Тема', 'darkModeText': 'Қараңғы режим',
-                'heroTitle': 'Денсаулықты ас мәзірлері', 'heroSubtitle': '50+ денсаулықты тағамдардан таңдау жасаңыз',
-                'randomTitle': 'Бүгін не жеуге болады?', 'randomBtn': 'Кездейсоқ тағам',
-                'filterAll': 'Барлығы', 'filterLow': '500 ккал-ден төмен', 'filterMedium': '500-700 ккал', 'filterHigh': '700 ккал-ден жоғары', 'filterFavorites': 'Таңдаулылар',
-                'searchPlaceholder': 'Тағам іздеу...', 'addBtn': 'Қосу', 'added': 'Қосылды!',
-                'notLogged': 'Алдымен жүйеге кіріңіз!', 'addedToDiary': 'күнделікке қосылды!',
-                'favoriteAdded': 'Таңдаулыға қосылды', 'favoriteRemoved': 'Таңдаулыдан жойылды',
-                'noResults': 'Тағамдар табылмады', 'copyrightText': 'Барлық құқықтар қорғалған.',
-                'footerAboutText': 'Біз туралы', 'footerBlogText': 'Блог', 'footerContactText': 'Байланыс',
-                'footerMenuText': 'Мәзір', 'footerCaloriesText': 'Калория', 'footerDashboardText': 'Бақылау',
-                'footerProfileText': 'Профиль', 'footerLoginText': 'Кіру', 'footerRegisterText': 'Тіркелу',
-                'tagVegan': 'вегетариандық', 'tagProtein': 'протеин', 'tagLight': 'жеңіл', 'tagSweet': 'тәтті', 'tagOmega': 'омега-3', 'tagDiet': 'диеталық', 'tagDessert': 'десерт',
-                // Названия блюд на казахском
-                'meal1': '🥣 Сұлы ботқасы', 'meal2': '🍳 Омлет', 'meal3': '🥑 Авокадо тосты', 'meal4': '🥛 Йогурт парфе', 'meal5': '🥞 Банан құймақтары',
-                'meal11': '🍗 Гриль тауық', 'meal12': '🐟 Лосось', 'meal13': '🥗 Киноа салаты', 'meal14': '🍜 Көкөніс сорпасы', 'meal15': '🍛 Тауық карри',
-                'meal21': '🐟 Балық котлеттері', 'meal22': '🥦 Брокколи сорпасы', 'meal23': '🍆 Көкөніс рагу', 'meal24': '🍗 Тауық қуырдағы',
-                'meal28': '🍎 Печеный алма', 'meal29': '🍌 Банан кексі', 'meal30': '🍫 Шоколадты мусс'
-            },
-            ru: {
-                'siteTitle': 'Menu & Calories', 'menuTitle': 'Меню', 'homeText': 'Главная',
-                'loginText': 'Вход', 'registerText': 'Регистрация', 'menuText': 'Меню',
-                'caloriesText': 'Калории', 'dashboardText': 'Панель', 'profileText': 'Профиль',
-                'languageText': 'Язык', 'themeText': 'Тема', 'darkModeText': 'Темный режим',
-                'heroTitle': 'Здоровое меню', 'heroSubtitle': 'Выберите из 50+ здоровых блюд',
-                'randomTitle': 'Что съесть сегодня?', 'randomBtn': 'Случайное блюдо',
-                'filterAll': 'Все', 'filterLow': 'До 500 ккал', 'filterMedium': '500-700 ккал', 'filterHigh': 'Более 700 ккал', 'filterFavorites': 'Избранное',
-                'searchPlaceholder': 'Поиск блюд...', 'addBtn': 'Добавить', 'added': 'Добавлено!',
-                'notLogged': 'Сначала войдите в систему!', 'addedToDiary': 'добавлено в дневник!',
-                'favoriteAdded': 'Добавлено в избранное', 'favoriteRemoved': 'Удалено из избранного',
-                'noResults': 'Блюда не найдены', 'copyrightText': 'Все права защищены.',
-                'footerAboutText': 'О нас', 'footerBlogText': 'Блог', 'footerContactText': 'Контакты',
-                'footerMenuText': 'Меню', 'footerCaloriesText': 'Калории', 'footerDashboardText': 'Панель',
-                'footerProfileText': 'Профиль', 'footerLoginText': 'Вход', 'footerRegisterText': 'Регистрация',
-                'tagVegan': 'веган', 'tagProtein': 'белок', 'tagLight': 'лёгкий', 'tagSweet': 'сладкий', 'tagOmega': 'омега-3', 'tagDiet': 'диетический', 'tagDessert': 'десерт',
-                // Названия блюд на русском
-                'meal1': '🥣 Овсяная каша', 'meal2': '🍳 Омлет', 'meal3': '🥑 Тосты с авокадо', 'meal4': '🥛 Йогурт парфе', 'meal5': '🥞 Банановые оладьи',
-                'meal11': '🍗 Курица гриль', 'meal12': '🐟 Лосось', 'meal13': '🥗 Салат с киноа', 'meal14': '🍜 Овощной суп', 'meal15': '🍛 Карри с курицей',
-                'meal21': '🐟 Рыбные котлеты', 'meal22': '🥦 Суп брокколи', 'meal23': '🍆 Рагу из овощей', 'meal24': '🍗 Жаркое из курицы',
-                'meal28': '🍎 Печёное яблоко', 'meal29': '🍌 Банановый кекс', 'meal30': '🍫 Шоколадный мусс'
-            },
-            en: {
-                'siteTitle': 'Menu & Calories', 'menuTitle': 'Menu', 'homeText': 'Home',
-                'loginText': 'Login', 'registerText': 'Register', 'menuText': 'Menu',
-                'caloriesText': 'Calories', 'dashboardText': 'Dashboard', 'profileText': 'Profile',
-                'languageText': 'Language', 'themeText': 'Theme', 'darkModeText': 'Dark mode',
-                'heroTitle': 'Healthy Menu', 'heroSubtitle': 'Choose from 50+ healthy dishes',
-                'randomTitle': 'What to eat today?', 'randomBtn': 'Random dish',
-                'filterAll': 'All', 'filterLow': 'Under 500 kcal', 'filterMedium': '500-700 kcal', 'filterHigh': 'Over 700 kcal', 'filterFavorites': 'Favorites',
-                'searchPlaceholder': 'Search dishes...', 'addBtn': 'Add', 'added': 'Added!',
-                'notLogged': 'Please login first!', 'addedToDiary': 'added to diary!',
-                'favoriteAdded': 'Added to favorites', 'favoriteRemoved': 'Removed from favorites',
-                'noResults': 'No dishes found', 'copyrightText': 'All rights reserved.',
-                'footerAboutText': 'About', 'footerBlogText': 'Blog', 'footerContactText': 'Contact',
-                'footerMenuText': 'Menu', 'footerCaloriesText': 'Calories', 'footerDashboardText': 'Dashboard',
-                'footerProfileText': 'Profile', 'footerLoginText': 'Login', 'footerRegisterText': 'Register',
-                'tagVegan': 'vegan', 'tagProtein': 'protein', 'tagLight': 'light', 'tagSweet': 'sweet', 'tagOmega': 'omega-3', 'tagDiet': 'diet', 'tagDessert': 'dessert',
-                // Названия блюд на английском
-                'meal1': '🥣 Oatmeal', 'meal2': '🍳 Omelette', 'meal3': '🥑 Avocado Toast', 'meal4': '🥛 Yogurt Parfait', 'meal5': '🥞 Banana Pancakes',
-                'meal11': '🍗 Grilled Chicken', 'meal12': '🐟 Salmon', 'meal13': '🥗 Quinoa Salad', 'meal14': '🍜 Vegetable Soup', 'meal15': '🍛 Chicken Curry',
-                'meal21': '🐟 Fish Cakes', 'meal22': '🥦 Broccoli Soup', 'meal23': '🍆 Vegetable Stew', 'meal24': '🍗 Chicken Stew',
-                'meal28': '🍎 Baked Apple', 'meal29': '🍌 Banana Cake', 'meal30': '🍫 Chocolate Mousse'
-            }
+            kk: { 'site-title': 'Menu & Calories', 'home': 'Басты бет', 'login': 'Кіру', 'register': 'Тіркелу', 'menu': 'Мәзір', 'calories': 'Калория', 'dashboard': 'Бақылау', 'profile': 'Профиль', 'menu-title': 'Меню', 'language': 'Тіл', 'theme': 'Тема', 'dark-mode': 'Қараңғы режим', 'menu-hero': 'Денсаулықты ас мәзірлері', 'menu-hero-text': '60+ денсаулықты тағамдардан таңдау жасаңыз', 'total': 'Барлығы:', 'dishes': 'тағам', 'search': 'Іздеу', 'add': 'Қосу', 'added': 'Қосылды!', 'not-logged': 'Алдымен жүйеге кіріңіз!', 'added-to-diary': 'күнделікке қосылды!', 'copyright': 'Барлық құқықтар қорғалған.' },
+            ru: { 'site-title': 'Menu & Calories', 'home': 'Главная', 'login': 'Вход', 'register': 'Регистрация', 'menu': 'Меню', 'calories': 'Калории', 'dashboard': 'Панель', 'profile': 'Профиль', 'menu-title': 'Меню', 'language': 'Язык', 'theme': 'Тема', 'dark-mode': 'Темный режим', 'menu-hero': 'Здоровое меню', 'menu-hero-text': 'Выберите из 60+ здоровых блюд', 'total': 'Всего:', 'dishes': 'блюд', 'search': 'Поиск', 'add': 'Добавить', 'added': 'Добавлено!', 'not-logged': 'Сначала войдите в систему!', 'added-to-diary': 'добавлено в дневник!', 'copyright': 'Все права защищены.' },
+            en: { 'site-title': 'Menu & Calories', 'home': 'Home', 'login': 'Login', 'register': 'Register', 'menu': 'Menu', 'calories': 'Calories', 'dashboard': 'Dashboard', 'profile': 'Profile', 'menu-title': 'Menu', 'language': 'Language', 'theme': 'Theme', 'dark-mode': 'Dark mode', 'menu-hero': 'Healthy Menu', 'menu-hero-text': 'Choose from 60+ healthy dishes', 'total': 'Total:', 'dishes': 'dishes', 'search': 'Search', 'add': 'Add', 'added': 'Added!', 'not-logged': 'Please login first!', 'added-to-diary': 'added to diary!', 'copyright': 'All rights reserved.' }
         };
 
-        // ============ ДАННЫЕ БЛЮД ============
-        const MEALS = [
-            { id: 1, nameKey: "meal1", calories: 350, category: "breakfast", tags: ["vegan", "light"], image: "🥣", bgColor: "#fef3c7" },
-            { id: 2, nameKey: "meal2", calories: 320, category: "breakfast", tags: ["protein"], image: "🍳", bgColor: "#fef9c3" },
-            { id: 3, nameKey: "meal3", calories: 380, category: "breakfast", tags: ["vegan"], image: "🥑", bgColor: "#dcfce7" },
-            { id: 4, nameKey: "meal4", calories: 280, category: "breakfast", tags: ["light"], image: "🥛", bgColor: "#fce7f3" },
-            { id: 5, nameKey: "meal5", calories: 420, category: "breakfast", tags: ["sweet"], image: "🥞", bgColor: "#fef3c7" },
-            { id: 11, nameKey: "meal11", calories: 650, category: "lunch", tags: ["protein", "diet"], image: "🍗", bgColor: "#ffedd5" },
-            { id: 12, nameKey: "meal12", calories: 580, category: "lunch", tags: ["omega"], image: "🐟", bgColor: "#ffedd5" },
-            { id: 13, nameKey: "meal13", calories: 450, category: "lunch", tags: ["vegan", "light"], image: "🥗", bgColor: "#dcfce7" },
-            { id: 14, nameKey: "meal14", calories: 180, category: "lunch", tags: ["vegan", "light"], image: "🍜", bgColor: "#fef3c7" },
-            { id: 15, nameKey: "meal15", calories: 550, category: "lunch", tags: ["protein"], image: "🍛", bgColor: "#ffedd5" },
-            { id: 21, nameKey: "meal21", calories: 310, category: "dinner", tags: ["protein"], image: "🐟", bgColor: "#dbeafe" },
-            { id: 22, nameKey: "meal22", calories: 160, category: "dinner", tags: ["vegan", "light"], image: "🥦", bgColor: "#dcfce7" },
-            { id: 23, nameKey: "meal23", calories: 200, category: "dinner", tags: ["vegan"], image: "🍆", bgColor: "#fef3c7" },
-            { id: 24, nameKey: "meal24", calories: 380, category: "dinner", tags: ["protein"], image: "🍗", bgColor: "#ffedd5" },
-            { id: 28, nameKey: "meal28", calories: 95, category: "dessert", tags: ["dessert", "light"], image: "🍎", bgColor: "#fef3c7" },
-            { id: 29, nameKey: "meal29", calories: 210, category: "dessert", tags: ["sweet"], image: "🍌", bgColor: "#fce7f3" },
-            { id: 30, nameKey: "meal30", calories: 180, category: "dessert", tags: ["sweet"], image: "🍫", bgColor: "#fef3c7" }
+        // ============ 60 ТАҒАМ (ҰЛТТЫҚ ТАҒАМДАР БӨЛЕК) ============
+        const nationalFoods = [
+            { id: 101, name: "🥨 Бауырсақ", calories: 380, protein: 6, fat: 18, carbs: 48, time: 25, desc: "Қазақтың ұлттық тағамы, майға қуырылған қамыр", img: "🥨" },
+            { id: 103, name: "🥘 Бешбармақ", calories: 320, protein: 24, fat: 18, carbs: 20, time: 90, desc: "Қазақтың ұлттық тағамы", img: "🥘" },
+            { id: 105, name: "🍲 Қуырдақ", calories: 250, protein: 20, fat: 16, carbs: 8, time: 45, desc: "Қазақтың ұлттық тағамы", img: "🍲" },
+            { id: 106, name: "🥩 Қазы", calories: 450, protein: 18, fat: 40, carbs: 2, time: 15, desc: "Қазақтың ұлттық шұжығы", img: "🥩" },
+            { id: 107, name: "🧀 Құрт", calories: 300, protein: 20, fat: 15, carbs: 18, time: 5, desc: "Қазақтың ұлттық құрғақ сүзбесі", img: "🧀" },
+            { id: 108, name: "🍪 Шелекет", calories: 150, protein: 3, fat: 5, carbs: 22, time: 10, desc: "Қазақтың ұлттық тәттісі", img: "🍪" },
+            { id: 109, name: "🥛 Қымыз", calories: 50, protein: 2, fat: 1, carbs: 6, time: 2, desc: "Биенің сүтінен жасалған ұлттық сусын", img: "🥛" },
+            { id: 110, name: "🥛 Шұбат", calories: 65, protein: 2.5, fat: 3, carbs: 6, time: 2, desc: "Түйе сүтінен жасалған ұлттық сусын", img: "🥛" },
+            { id: 111, name: "🍖 Қарта", calories: 350, protein: 15, fat: 28, carbs: 5, time: 20, desc: "Жылқы етінен жасалған ұлттық тағам", img: "🍖" },
+            { id: 112, name: "🍲 Сорпа", calories: 120, protein: 8, fat: 6, carbs: 5, time: 60, desc: "Қазақтың ұлттық ет сорпасы", img: "🍲" }
         ];
 
-        let currentLang = localStorage.getItem('preferred-language') || 'kk';
-        let favorites = JSON.parse(localStorage.getItem('menuFavorites')) || [];
+        const allRecipesData = {
+            breakfast: [
+                { id: 1, name: "🥣 Сұлы ботқасы", calories: 350, protein: 12, fat: 8, carbs: 60, time: 10, desc: "Жемістер мен жаңғақтар қосылған пайдалы таңғы ас", img: "🥣" },
+                { id: 2, name: "🍳 Омлет", calories: 320, protein: 18, fat: 22, carbs: 8, time: 12, desc: "3 жұмыртқа, сүт, көкөністер", img: "🍳" },
+                { id: 3, name: "🥑 Авокадо тосты", calories: 380, protein: 10, fat: 24, carbs: 32, time: 8, desc: "Тұтас дәнді нан, авокадо, тұз, бұрыш", img: "🥑" },
+                { id: 4, name: "🥛 Йогурт парфе", calories: 280, protein: 15, fat: 8, carbs: 35, time: 5, desc: "Грек йогурты, жидектер, гранола", img: "🥛" },
+                { id: 5, name: "🥞 Банан құймақтары", calories: 420, protein: 12, fat: 14, carbs: 62, time: 20, desc: "Банан, жұмыртқа, сұлы ұны", img: "🥞" },
+                { id: 6, name: "🍚 Күріш ботқасы", calories: 300, protein: 8, fat: 4, carbs: 58, time: 25, desc: "Сүтпен, қант пен май қосылған", img: "🍚" },
+                { id: 7, name: "🥜 Чиа пудингі", calories: 250, protein: 8, fat: 14, carbs: 28, time: 5, desc: "Чиа тұқымдары, сүт, бал", img: "🥜" },
+                { id: 8, name: "🍅 Шакшука", calories: 340, protein: 16, fat: 20, carbs: 18, time: 25, desc: "Жұмыртқа, қызанақ, бұрыш, пияз", img: "🍅" },
+                { id: 9, name: "🥨 Сэндвич", calories: 400, protein: 20, fat: 16, carbs: 44, time: 10, desc: "Тұтас дәнді нан, ветчина, ірімшік, көкөніс", img: "🥨" },
+                { id: 10, name: "🍎 Алма пен даршын", calories: 180, protein: 2, fat: 3, carbs: 38, time: 15, desc: "Пеште пісірілген алма, даршын, бал", img: "🍎" }
+            ],
+            lunch: [
+                { id: 11, name: "🍗 Гриль тауық", calories: 420, protein: 38, fat: 18, carbs: 28, time: 30, desc: "Тауықтың төс еті, көкөністер", img: "🍗" },
+                { id: 12, name: "🐟 Фольгадағы лосось", calories: 480, protein: 35, fat: 28, carbs: 12, time: 35, desc: "Лосось, лимон, аскөк, зәйтүн майы", img: "🐟" },
+                { id: 13, name: "🥗 Киноа салаты", calories: 350, protein: 14, fat: 16, carbs: 42, time: 20, desc: "Киноа, қияр, қызанақ, фета, зәйтүн", img: "🥗" },
+                { id: 14, name: "🍜 Көкөніс сорпасы", calories: 180, protein: 5, fat: 4, carbs: 32, time: 40, desc: "Брокколи, сәбіз, картоп, пияз", img: "🍜" },
+                { id: 15, name: "🍛 Тауық карри", calories: 450, protein: 32, fat: 18, carbs: 44, time: 35, desc: "Тауық, кокос сүті, карри дәмдеуіштері", img: "🍛" },
+                { id: 16, name: "🌯 Веган орамасы", calories: 380, protein: 12, fat: 14, carbs: 52, time: 15, desc: "Тортилья, хумус, көкөністер, тофу", img: "🌯" },
+                { id: 17, name: "🍝 Спагетти болоньезе", calories: 520, protein: 28, fat: 20, carbs: 58, time: 45, desc: "Қатты бидай спагетти, ет фаршы", img: "🍝" },
+                { id: 18, name: "🍚 Палау", calories: 480, protein: 22, fat: 18, carbs: 58, time: 60, desc: "Күріш, ет, сәбіз, пияз", img: "🍚" },
+                { id: 19, name: "🍲 Борщ", calories: 220, protein: 10, fat: 8, carbs: 28, time: 90, desc: "Қызылша, капуста, картоп, ет", img: "🍲" },
+                { id: 20, name: "🥔 Картоп пюресі", calories: 280, protein: 6, fat: 10, carbs: 42, time: 30, desc: "Картоп, сүт, сары май", img: "🥔" },
+                { id: 21, name: "🍲 Жасымық сорпасы", calories: 190, protein: 12, fat: 4, carbs: 28, time: 35, desc: "Жасымық, сәбіз, пияз", img: "🍲" },
+                { id: 22, name: "🥗 Цезарь салаты", calories: 350, protein: 25, fat: 22, carbs: 15, time: 15, desc: "Тауық, салат, пармезан, соус", img: "🥗" }
+            ],
+            dinner: [
+                { id: 23, name: "🐟 Балық котлеттері", calories: 310, protein: 24, fat: 16, carbs: 18, time: 25, desc: "Ақ балық, жұмыртқа, нан үгіндісі", img: "🐟" },
+                { id: 24, name: "🥦 Брокколи сорпасы", calories: 160, protein: 8, fat: 6, carbs: 20, time: 30, desc: "Брокколи, картоп, пияз, кілегей", img: "🥦" },
+                { id: 25, name: "🍆 Көкөніс рагу", calories: 200, protein: 6, fat: 10, carbs: 24, time: 35, desc: "Баклажан, бұрыш, қызанақ, пияз", img: "🍆" },
+                { id: 26, name: "🍗 Тауық қуырдағы", calories: 380, protein: 34, fat: 18, carbs: 22, time: 30, desc: "Тауық, картоп, пияз, дәмдеуіштер", img: "🍗" },
+                { id: 27, name: "🥗 Жеңіл салат", calories: 140, protein: 5, fat: 9, carbs: 12, time: 10, desc: "Айсберг, қияр, қызанақ, зәйтүн майы", img: "🥗" },
+                { id: 28, name: "🍚 Қарақұмық", calories: 260, protein: 10, fat: 6, carbs: 46, time: 25, desc: "Қарақұмық жармасы, май", img: "🍚" },
+                { id: 29, name: "🥚 Пісірілген жұмыртқа", calories: 155, protein: 13, fat: 11, carbs: 1, time: 10, desc: "2 жұмыртқа, тұз", img: "🥚" },
+                { id: 30, name: "🍅 Фаршированный бұрыш", calories: 210, protein: 12, fat: 8, carbs: 24, time: 50, desc: "Бұрыш, күріш, ет фаршы", img: "🍅" },
+                { id: 31, name: "🥬 Капуста орамасы", calories: 230, protein: 14, fat: 10, carbs: 22, time: 60, desc: "Капуста, күріш, ет фаршы", img: "🥬" },
+                { id: 32, name: "🍳 Фритатта", calories: 280, protein: 18, fat: 18, carbs: 10, time: 25, desc: "Жұмыртқа, көкөністер, ірімшік", img: "🍳" }
+            ],
+            dessert: [
+                { id: 33, name: "🍎 Печеный алма", calories: 95, protein: 0.5, fat: 0.5, carbs: 24, time: 25, desc: "Алма, даршын, бал", img: "🍎" },
+                { id: 34, name: "🍌 Бананды кекс", calories: 210, protein: 4, fat: 8, carbs: 32, time: 40, desc: "Банан, ұн, жұмыртқа, қант", img: "🍌" },
+                { id: 35, name: "🍫 Шоколадты мусс", calories: 180, protein: 5, fat: 12, carbs: 16, time: 15, desc: "Қара шоколад, жұмыртқа, қант", img: "🍫" },
+                { id: 36, name: "🍯 Бал", calories: 304, protein: 0.3, fat: 0, carbs: 82, time: 1, desc: "Табиғи бал", img: "🍯" }
+            ],
+            drinks: [
+                { id: 202, name: "☕ Шай", calories: 2, protein: 0, fat: 0, carbs: 0.5, time: 5, desc: "Ыстық шай", img: "☕" },
+                { id: 203, name: "☕ Кофе", calories: 5, protein: 0, fat: 0, carbs: 0.5, time: 5, desc: "Қара кофе", img: "☕" },
+                { id: 204, name: "🧃 Компот", calories: 45, protein: 0, fat: 0, carbs: 12, time: 20, desc: "Құрғақ жемістерден жасалған сусын", img: "🧃" },
+                { id: 205, name: "🍊 Апельсин шырыны", calories: 45, protein: 0.5, fat: 0, carbs: 11, time: 3, desc: "Жаңа сығылған шырын", img: "🍊" }
+            ]
+        };
+
         let currentFilter = 'all';
+        let currentSort = 'default';
+        let currentCategory = 'all';
         let currentSearch = '';
 
-        function t(key) { return translations[currentLang][key] || key; }
-
-        function getMealName(meal) { return t(meal.nameKey); }
-
-        function updateAllTexts() {
-            const elements = ['siteTitle', 'menuTitle', 'homeText', 'loginText', 'registerText', 'menuText',
-                'caloriesText', 'dashboardText', 'profileText', 'languageText', 'themeText', 'darkModeText',
-                'heroTitle', 'heroSubtitle', 'randomTitle', 'randomBtn', 'filterAll', 'filterLow', 'filterMedium',
-                'filterHigh', 'filterFavorites', 'copyrightText', 'footerAboutText', 'footerBlogText', 'footerContactText',
-                'footerMenuText', 'footerCaloriesText', 'footerDashboardText', 'footerProfileText', 'footerLoginText', 'footerRegisterText'];
-            elements.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = t(id); });
-            document.getElementById('searchInput').placeholder = t('searchPlaceholder');
-            renderMeals();
-        }
-
-        function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
-        function toggleMenu() { document.getElementById('menuPanel').classList.toggle('active'); document.getElementById('menuOverlay').classList.toggle('active'); document.getElementById('burgerIcon').classList.toggle('active'); document.body.style.overflow = document.body.style.overflow === 'hidden' ? 'auto' : 'hidden'; }
-        function closeMenu() { document.getElementById('menuPanel').classList.remove('active'); document.getElementById('menuOverlay').classList.remove('active'); document.getElementById('burgerIcon').classList.remove('active'); document.body.style.overflow = 'auto'; }
-        function checkInternet() { const alert = document.getElementById('offlineAlert'); if (!navigator.onLine) alert.classList.add('show'); else alert.classList.remove('show'); }
-
         function switchLanguage(lang) {
-            currentLang = lang;
             localStorage.setItem('preferred-language', lang);
             document.documentElement.lang = lang;
+            document.querySelectorAll('.lang-text').forEach(el => {
+                const key = el.getAttribute('data-key');
+                if (key && translations[lang] && translations[lang][key]) el.textContent = translations[lang][key];
+            });
             document.querySelectorAll('.lang-menu-btn').forEach(btn => {
                 btn.classList.remove('active');
-                if (btn.getAttribute('data-lang') === lang) btn.classList.add('active');
+                if (btn.textContent.toLowerCase().includes(lang)) btn.classList.add('active');
             });
-            updateAllTexts();
-            showToast('Тіл өзгертілді: ' + lang.toUpperCase());
+            showToast(translations[lang]['language'] + ' ' + lang.toUpperCase());
         }
 
         function toggleTheme() {
-            const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            const current = document.documentElement.getAttribute('data-theme');
+            const newTheme = current === 'dark' ? 'light' : 'dark';
             localStorage.setItem('preferred-theme', newTheme);
             document.documentElement.setAttribute('data-theme', newTheme);
             const icon = document.getElementById('themeMenuBtn').querySelector('i');
             icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-            showToast(newTheme === 'dark' ? '🌙 Қараңғы режим' : '☀️ Жарық режим');
         }
 
-        function getTagTranslation(tag) {
-            const tagMap = { 'vegan': 'tagVegan', 'protein': 'tagProtein', 'light': 'tagLight', 'sweet': 'tagSweet', 'omega': 'tagOmega', 'diet': 'tagDiet', 'dessert': 'tagDessert' };
-            return t(tagMap[tag] || tag);
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
         }
 
-        function toggleFavorite(id) {
-            const idx = favorites.indexOf(id);
-            if (idx === -1) favorites.push(id);
-            else favorites.splice(idx, 1);
-            localStorage.setItem('menuFavorites', JSON.stringify(favorites));
-            renderMeals();
-            showToast(idx === -1 ? t('favoriteAdded') : t('favoriteRemoved'));
+        function toggleMenu() {
+            document.getElementById('menuPanel').classList.toggle('active');
+            document.getElementById('menuOverlay').classList.toggle('active');
+            document.getElementById('burgerIcon').classList.toggle('active');
+            document.body.style.overflow = document.body.style.overflow === 'hidden' ? 'auto' : 'hidden';
+        }
+        function closeMenu() {
+            document.getElementById('menuPanel').classList.remove('active');
+            document.getElementById('menuOverlay').classList.remove('active');
+            document.getElementById('burgerIcon').classList.remove('active');
+            document.body.style.overflow = 'auto';
         }
 
-        // Функция добавления в дашборд (исправлена)
-        window.addToDashboard = function(mealCategory, mealId, calories, button) {
+        function addToDashboard(mealCategory, foodName, calories, button) {
             const isLoggedIn = localStorage.getItem('menuCalories_isLoggedIn');
+            const lang = localStorage.getItem('preferred-language') || 'kk';
             if (isLoggedIn !== 'true') {
-                showToast(t('notLogged'));
+                showToast(translations[lang]['not-logged']);
                 setTimeout(() => window.location.href = 'login.html', 1500);
                 return;
             }
-            
-            // Получаем название блюда на текущем языке
-            const meal = MEALS.find(m => m.id === mealId);
-            const foodName = meal ? t(meal.nameKey) : 'Блюдо';
-            
-            // Получаем текущие данные или создаём новые
             let todayFoods = JSON.parse(localStorage.getItem('menuCalories_todayFoods'));
-            const today = new Date().toDateString();
-            
-            if (!todayFoods || todayFoods.date !== today) {
-                todayFoods = { date: today, foods: { breakfast: [], lunch: [], dinner: [], snack: [] } };
+            if (!todayFoods || todayFoods.date !== new Date().toDateString()) {
+                todayFoods = { date: new Date().toDateString(), foods: { breakfast: [], lunch: [], dinner: [], snack: [] } };
             }
-            
-            // Определяем тип приёма пищи
-            const mealMap = { 'breakfast': 'breakfast', 'lunch': 'lunch', 'dinner': 'dinner', 'dessert': 'snack' };
+            const mealMap = { 'breakfast': 'breakfast', 'lunch': 'lunch', 'dinner': 'dinner', 'dessert': 'snack', 'drinks': 'snack', 'national': 'snack' };
             const targetMeal = mealMap[mealCategory] || 'snack';
-            
-            // Добавляем блюдо
-            todayFoods.foods[targetMeal].push({ 
-                id: Date.now(), 
-                name: foodName, 
-                calories: calories, 
-                mealId: mealId,
-                time: new Date().toLocaleTimeString() 
-            });
-            
-            // Сохраняем
+            todayFoods.foods[targetMeal].push({ id: Date.now(), name: foodName, calories: calories, time: new Date().toLocaleTimeString() });
             localStorage.setItem('menuCalories_todayFoods', JSON.stringify(todayFoods));
-            
-            // Меняем кнопку
             const originalHTML = button.innerHTML;
-            button.innerHTML = '<i class="fas fa-check"></i> ' + t('added');
+            button.innerHTML = '<i class="fas fa-check"></i> ' + translations[lang]['added'];
             button.classList.add('added');
-            showToast(`"${foodName}" ${t('addedToDiary')}`);
-            
-            setTimeout(() => { 
-                button.innerHTML = originalHTML; 
-                button.classList.remove('added'); 
-            }, 2000);
-        };
+            showToast(`"${foodName}" ${translations[lang]['added-to-diary']}`);
+            setTimeout(() => { button.innerHTML = originalHTML; button.classList.remove('added'); }, 2000);
+        }
 
-        function renderMeals() {
-            let filtered = [...MEALS];
-            if (currentSearch) filtered = filtered.filter(m => t(m.nameKey).toLowerCase().includes(currentSearch));
-            if (currentFilter === 'low') filtered = filtered.filter(m => m.calories < 500);
-            else if (currentFilter === 'medium') filtered = filtered.filter(m => m.calories >= 500 && m.calories <= 700);
-            else if (currentFilter === 'high') filtered = filtered.filter(m => m.calories > 700);
-            else if (currentFilter === 'favorites') filtered = filtered.filter(m => favorites.includes(m.id));
-            
-            const grid = document.getElementById('menuGrid');
-            if (filtered.length === 0) { grid.innerHTML = `<div style="text-align:center;padding:40px;">🍽️ ${t('noResults')}</div>`; return; }
-            
-            grid.innerHTML = filtered.map(meal => `
-                <div class="menu-card">
-                    <div class="menu-img" style="background: ${meal.bgColor};">
-                        ${meal.image}
-                        <div class="calorie-badge">${meal.calories} ккал</div>
-                        <div class="favorite-btn ${favorites.includes(meal.id) ? 'active' : ''}" onclick="toggleFavorite(${meal.id})">
-                            <i class="fas fa-heart"></i>
+        function filterByCalories(recipes) {
+            if (currentFilter === 'low') return recipes.filter(r => r.calories <= 300);
+            if (currentFilter === 'medium') return recipes.filter(r => r.calories <= 500);
+            if (currentFilter === 'high') return recipes.filter(r => r.calories <= 800);
+            return recipes;
+        }
+
+        function sortRecipes(recipes) {
+            const sorted = [...recipes];
+            if (currentSort === 'cal-asc') return sorted.sort((a,b) => a.calories - b.calories);
+            if (currentSort === 'cal-desc') return sorted.sort((a,b) => b.calories - a.calories);
+            return sorted;
+        }
+
+        function filterBySearch(recipes) {
+            if (!currentSearch) return recipes;
+            return recipes.filter(r => r.name.toLowerCase().includes(currentSearch));
+        }
+
+        function getRecipesByCategory(catKey) {
+            if (catKey === 'national') return [...nationalFoods];
+            if (catKey === 'all') {
+                let all = [];
+                for (let key in allRecipesData) {
+                    all.push(...allRecipesData[key]);
+                }
+                all.push(...nationalFoods);
+                return all;
+            }
+            return [...(allRecipesData[catKey] || [])];
+        }
+
+        function renderAllCategories() {
+            const container = document.getElementById('all-categories-container');
+            if (!container) return;
+            let html = '';
+            let totalDishes = 0;
+
+            const categories = [
+                { key: 'breakfast', name: 'Таңғы ас', icon: 'fa-sun' },
+                { key: 'lunch', name: 'Түскі ас', icon: 'fa-utensils' },
+                { key: 'dinner', name: 'Кешкі ас', icon: 'fa-moon' },
+                { key: 'dessert', name: 'Тәттілер', icon: 'fa-ice-cream' },
+                { key: 'national', name: 'Ұлттық тағамдар', icon: 'fa-crown' },
+                { key: 'drinks', name: 'Сусындар', icon: 'fa-mug-hot' }
+            ];
+
+            for (const cat of categories) {
+                let recipes = getRecipesByCategory(cat.key);
+                recipes = filterBySearch(recipes);
+                recipes = filterByCalories(recipes);
+                recipes = sortRecipes(recipes);
+                
+                if (currentCategory !== 'all' && currentCategory !== cat.key) continue;
+                if (recipes.length === 0) continue;
+                
+                totalDishes += recipes.length;
+                
+                let cardsHtml = '';
+                recipes.forEach(recipe => {
+                    const bgColors = ['#fef3c7', '#ffedd5', '#fef9c3', '#fce7f3', '#e0f2fe', '#dcfce7', '#fef9c3'];
+                    const randomColor = bgColors[Math.floor(Math.random() * bgColors.length)];
+                    cardsHtml += `
+                        <div class="menu-card">
+                            <div class="calorie-badge">${recipe.calories} ккал</div>
+                            <div class="menu-img" style="background: ${randomColor}; font-size: 4rem; display: flex; align-items: center; justify-content: center;">
+                                ${recipe.img || '🍽️'}
+                            </div>
+                            <div class="menu-info">
+                                <h3>${recipe.name}</h3>
+                                <p>${recipe.desc || '🍽️ Дәмді және пайдалы тағам'}</p>
+                                <div class="menu-details">
+                                    <span><i class="fas fa-fire"></i> ${recipe.calories} ккал</span>
+                                    <span><i class="fas fa-clock"></i> ${recipe.time || 15} мин</span>
+                                </div>
+                                <button class="btn-add" onclick="addToDashboard('${cat.key}', '${recipe.name.replace(/'/g, "\\'")}', ${recipe.calories}, this)"><i class="fas fa-plus"></i> Қосу</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="menu-info">
-                        <h3>${t(meal.nameKey)}</h3>
-                        <div class="tags">${meal.tags.map(tg => `<span class="tag">#${getTagTranslation(tg)}</span>`).join('')}</div>
-                        <div class="menu-details"><span><i class="fas fa-fire"></i> ${meal.calories} ккал</span></div>
-                        <button class="btn-add" onclick="addToDashboard('${meal.category}', ${meal.id}, ${meal.calories}, this)"><i class="fas fa-plus"></i> ${t('addBtn')}</button>
-                    </div>
-                </div>
-            `).join('');
+                    `;
+                });
+                html += `<div class="menu-category-section"><h2 class="category-title"><i class="fas ${cat.icon}"></i> ${cat.name}</h2><div class="menu-grid">${cardsHtml}</div></div>`;
+            }
+            container.innerHTML = html || '<div style="text-align:center;padding:40px;">🍽️ Тағамдар табылмады</div>';
+            
+            document.getElementById('totalDishes').textContent = totalDishes;
+            document.getElementById('allCount').textContent = totalDishes;
+            document.getElementById('breakfastCount').textContent = allRecipesData.breakfast.length;
+            document.getElementById('lunchCount').textContent = allRecipesData.lunch.length;
+            document.getElementById('dinnerCount').textContent = allRecipesData.dinner.length;
+            document.getElementById('dessertCount').textContent = allRecipesData.dessert.length;
+            document.getElementById('nationalCount').textContent = nationalFoods.length;
+            document.getElementById('drinksCount').textContent = allRecipesData.drinks.length;
         }
 
-        function showRandomMeal() {
-            const randomMeal = MEALS[Math.floor(Math.random() * MEALS.length)];
-            showToast(`🎲 ${t('randomBtn')}: ${t(randomMeal.nameKey)} (${randomMeal.calories} ккал)`);
-            setTimeout(() => {
-                const cards = document.querySelectorAll('.menu-card');
-                const index = MEALS.findIndex(m => m.id === randomMeal.id);
-                if (cards[index]) cards[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 500);
-        }
+        function updateAll() { renderAllCategories(); }
 
-        document.querySelectorAll('.filter-chip').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                currentFilter = this.dataset.filter;
-                renderMeals();
-            });
-        });
-
-        document.getElementById('searchInput').addEventListener('input', function(e) {
-            currentSearch = e.target.value.toLowerCase();
-            renderMeals();
-        });
-
-        document.addEventListener('DOMContentLoaded', function() {
-            currentLang = localStorage.getItem('preferred-language') || 'kk';
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedLang = localStorage.getItem('preferred-language') || 'kk';
             const savedTheme = localStorage.getItem('preferred-theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
             if (savedTheme === 'dark') document.getElementById('themeMenuBtn').querySelector('i').className = 'fas fa-sun';
-            updateAllTexts();
-            renderMeals();
+            
+            function checkInternet() {
+                const alert = document.getElementById('offlineAlert');
+                if (!navigator.onLine) alert.classList.add('show');
+                else alert.classList.remove('show');
+            }
             window.addEventListener('load', checkInternet);
             window.addEventListener('online', checkInternet);
             window.addEventListener('offline', checkInternet);
+            
+            renderAllCategories();
+            
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    currentCategory = this.dataset.category;
+                    renderAllCategories();
+                });
+            });
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.dataset.filter;
+                    renderAllCategories();
+                });
+            });
+            
+            document.querySelectorAll('.sort-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentSort = this.dataset.sort;
+                    renderAllCategories();
+                });
+            });
+            
+            document.getElementById('searchBtn').addEventListener('click', () => {
+                currentSearch = document.getElementById('searchInput').value.toLowerCase().trim();
+                renderAllCategories();
+            });
+            document.getElementById('searchInput').addEventListener('keyup', (e) => { if (e.key === 'Enter') { currentSearch = e.target.value.toLowerCase().trim(); renderAllCategories(); } });
+            
             document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
         });
 
-        window.toggleFavorite = toggleFavorite;
+        window.addToDashboard = addToDashboard;
         window.toggleMenu = toggleMenu;
         window.closeMenu = closeMenu;
         window.switchLanguage = switchLanguage;
         window.toggleTheme = toggleTheme;
-        window.showRandomMeal = showRandomMeal;
-        window.addToDashboard = addToDashboard;
     </script>
 </body>
 </html>
